@@ -1,11 +1,16 @@
 import { Devvit } from '@devvit/public-api';
+import { onCommentSubmit } from './handlers.js';
+
+Devvit.configure({
+  redis: true,
+});
+
+Devvit.addTrigger({
+  event: 'CommentSubmit',
+  onEvent: onCommentSubmit,
+});
 
 Devvit.addMenuItem({
-  location: 'post',
-  label: 'Hello World',
-  onPress: (event, context) => {
-    console.log(`Pressed ${event.targetId}`);
-    context.ui.showToast('Hello world!');
   },
 });
 
