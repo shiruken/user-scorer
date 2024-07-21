@@ -1,5 +1,5 @@
 import { Devvit } from '@devvit/public-api';
-import { onCommentSubmit } from './handlers.js';
+import { onCommentSubmit, onModAction } from './handlers.js';
 
 Devvit.configure({
   redis: true,
@@ -8,6 +8,11 @@ Devvit.configure({
 Devvit.addTrigger({
   event: 'CommentSubmit',
   onEvent: onCommentSubmit,
+});
+
+Devvit.addTrigger({
+  event: 'ModAction',
+  onEvent: onModAction,
 });
 
 Devvit.addMenuItem({
