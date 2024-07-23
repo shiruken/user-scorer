@@ -13,31 +13,40 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
   }
 
   const data = await context.redis.hgetall(user.name);
-  console.log(`u/${user.name} user data:\n${JSON.stringify(data, null, 2)}`);
 
   // hgetall is currently returning an empty object instead 
   // of `undefined` when the key does not exist
   let comment_ids: string[] = [];
+  let removed_comment_ids: string[] = [];
   if (!data || Object.keys(data).length === 0) { // Initialize Redis hash for user
     await context.redis.hset(user.name, {
       ['id']: user.id,
       ['name']: user.name,
       ['comment_ids']: "[]",
       ['removed_comment_ids']: "[]",
+      ['score']: "0",
     });
     console.log(`Initialized Redis hash for u/${user.name}`);
   } else {
     comment_ids = JSON.parse(data.comment_ids);
+    removed_comment_ids = JSON.parse(data.removed_comment_ids);
   }
   
   if (comment_ids.includes(comment.id)) {
-    console.log(`Skipped ${comment.id} by u/${user.name}, already in comment_ids`);
+    console.log(`Skipped ${comment.id} by u/${user.name}, already tracked`);
     return;
   }
 
   comment_ids.push(comment.id);
-  await context.redis.hset(user.name, { ['comment_ids']: JSON.stringify(comment_ids) });
-  console.log(`Added ${comment.id} to u/${user.name} (${comment_ids.length} items in comment_ids)`);
+  const score = calculateScore(comment_ids, removed_comment_ids);
+  await context.redis.hset(user.name, {
+    ['comment_ids']: JSON.stringify(comment_ids),
+    ['score']: JSON.stringify(score),
+  });
+  console.log(`u/${user.name}: Added ${comment.id} (comments=${comment_ids.length}, removed=${removed_comment_ids.length}, score=${score})`);
+
+  const data_updated = await context.redis.hgetall(user.name);
+  console.log(`u/${user.name} user data:\n${JSON.stringify(data_updated, null, 2)}`);
 }
 
 export async function onModAction(event: ModAction, context: TriggerContext) {
@@ -62,7 +71,6 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
   }
 
   const data = await context.redis.hgetall(user.name);
-  console.log(`u/${user.name} user data:\n${JSON.stringify(data, null, 2)}`);
 
   // hgetall is currently returning an empty object instead 
   // of `undefined` when the key does not exist
@@ -80,12 +88,14 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
   if (action == "removecomment" || action == "spamcomment") {
     if (!removed_comment_ids.includes(comment.id)) {
       removed_comment_ids.push(comment.id);
+      const score = calculateScore(comment_ids, removed_comment_ids);
       await context.redis.hset(user.name, {
-        ['removed_comment_ids']: JSON.stringify(removed_comment_ids)
+        ['removed_comment_ids']: JSON.stringify(removed_comment_ids),
+        ['score']: JSON.stringify(score),
       });
-      console.log(`Added ${comment.id} to u/${user.name} on ${action} (${removed_comment_ids.length} items in removed_comment_ids)`);
+      console.log(`u/${user.name}: ${action} on ${comment.id} (comments=${comment_ids.length}, removed=${removed_comment_ids.length}, score=${score})`)
     } else {
-      console.log(`Skipped ${comment.id} by u/${user.name} on ${action}, already in removed_comment_ids`);
+      console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, already tracked`);
     }
   }
   
@@ -93,13 +103,24 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
     if (removed_comment_ids.includes(comment.id)) {
       const index = removed_comment_ids.indexOf(comment.id);
       removed_comment_ids.splice(index, 1);
+      const score = calculateScore(comment_ids, removed_comment_ids);
       await context.redis.hset(user.name, {
-        ['removed_comment_ids']: JSON.stringify(removed_comment_ids)
+        ['removed_comment_ids']: JSON.stringify(removed_comment_ids),
+        ['score']: JSON.stringify(score),
       });
-      console.log(`Removed ${comment.id} from u/${user.name} on ${action} (${removed_comment_ids.length} items in removed_comment_ids)`);
+      console.log(`u/${user.name}: ${action} on ${comment.id} (comments=${comment_ids.length}, removed=${removed_comment_ids.length}, score=${score})`)
     } else {
-      console.log(`Skipped ${comment.id} by u/${user.name} on ${action}, not in removed_comment_ids`);
+      console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, not tracked`);
     }
   }
 
+  const data_updated = await context.redis.hgetall(user.name);
+  console.log(`u/${user.name} user data:\n${JSON.stringify(data_updated, null, 2)}`);
+}
+
+function calculateScore(comment_ids: string[], removed_comment_ids: string[], limit: number=5): number {
+  const comment_ids_slice = comment_ids.slice(-limit);
+  const union = comment_ids_slice.filter(id => removed_comment_ids.includes(id));
+  const score = union.length / comment_ids_slice.length;
+  return score;
 }
