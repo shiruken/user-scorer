@@ -1,6 +1,8 @@
 import { RedisClient, TriggerContext } from "@devvit/public-api";
 import { CommentSubmit, ModAction, UserV2 } from '@devvit/protos';
 
+const USER_KEY = "#users";
+
 export async function onCommentSubmit(event: CommentSubmit, context: TriggerContext) {
   const comment = event.comment;
   if (!comment) {
@@ -51,6 +53,7 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
     ['comment_ids']: JSON.stringify(data.comment_ids),
     ['score']: JSON.stringify(data.score),
   });
+  await context.redis.zAdd(USER_KEY, { member: user.name, score: data.score });
   console.log(`u/${user.name}: Added ${comment.id} ` +
               `(comments=${data.comment_ids.length}, ` +
               `removed=${data.removed_comment_ids.length}, ` +
@@ -96,6 +99,7 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
         ['removed_comment_ids']: JSON.stringify(data.removed_comment_ids),
         ['score']: JSON.stringify(data.score),
       });
+      await context.redis.zAdd(USER_KEY, { member: user.name, score: data.score });
       console.log(`u/${user.name}: ${action} on ${comment.id} ` +
                   `(comments=${data.comment_ids.length}, ` +
                   `removed=${data.removed_comment_ids.length}, ` +
@@ -114,6 +118,7 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
         ['removed_comment_ids']: JSON.stringify(data.removed_comment_ids),
         ['score']: JSON.stringify(data.score),
       });
+      await context.redis.zAdd(USER_KEY, { member: user.name, score: data.score });
       console.log(`u/${user.name}: ${action} on ${comment.id} ` +
                   `(comments=${data.comment_ids.length}, ` +
                   `removed=${data.removed_comment_ids.length}, ` +
@@ -139,6 +144,7 @@ async function getUserData(user: UserV2, redis: RedisClient): Promise<UserData> 
   // hgetall is currently returning an empty object instead 
   // of `undefined` when the key does not exist
   if (!hash || Object.keys(hash).length === 0) {
+    await redis.zAdd(USER_KEY, { member: user.name, score: 0 }); // Add to list of tracked users
     await redis.hset(user.name, {
       ['id']: user.id,
       ['name']: user.name,

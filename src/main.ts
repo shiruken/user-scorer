@@ -21,8 +21,19 @@ Devvit.addMenuItem({
   location: 'subreddit',
   forUserType: 'moderator',
   onPress: async(_event, context) => {
-    context.redis.del("shiruken");
+    await context.redis.del("shiruken");
+    await context.redis.zRem("#users", ["shiruken"]);
     console.log("Deleted u/shiruken from Redis");
+  },
+});
+
+Devvit.addMenuItem({
+  label: 'Get Tracked Users',
+  location: 'subreddit',
+  forUserType: 'moderator',
+  onPress: async(_event, context) => {
+    const users = await context.redis.zRange("#users", 0, -1);
+    console.log(users);
   },
 });
 
