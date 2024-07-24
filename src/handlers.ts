@@ -25,12 +25,17 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
   if (data.comment_ids.length >= 5) {
     if (data.score >= 0.4) {
       const object = await context.reddit.getCommentById(comment.id);
-      const score_fmt = data.score.toLocaleString("en-US", { maximumFractionDigits: 3 });
 
       // Report
       if (data.score >= 0.4) {
+        const score_fmt = data.score.toLocaleString("en-US", { maximumFractionDigits: 2 });
+        const num_recent_comments = Math.min(data.comment_ids.length, 10);
+        const num_recent_removed = num_recent_comments * data.score;
         await context.reddit
-          .report(object, { reason: `Bad User Score (${score_fmt})` })
+          .report(object, {
+            reason: `Bad User Score (${score_fmt}: ${num_recent_removed} ` +
+                    `of ${num_recent_comments} recent comments removed)`,
+          })
           .then(() => console.log(`u/${user.name}: Reported ${comment.id} (score=${data.score})`) )
           .catch((e) => console.error(`u/${user.name}: Error reporting ${object.id}`, e));
       }
