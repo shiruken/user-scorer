@@ -2,6 +2,7 @@ import { Devvit } from '@devvit/public-api';
 import { onCommentSubmit, onModAction } from './handlers.js';
 
 Devvit.configure({
+  redditAPI: true,
   redis: true,
 });
 

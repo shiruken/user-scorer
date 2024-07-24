@@ -19,6 +19,32 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
     return;
   }
 
+  // Action Comment, if enabled and eligible
+  if (data.comment_ids.length >= 5) {
+    if (data.score >= 0.4) {
+      const object = await context.reddit.getCommentById(comment.id);
+      const score_fmt = data.score.toLocaleString("en-US", { maximumFractionDigits: 3 });
+
+      // Report
+      if (data.score >= 0.4) {
+        await context.reddit
+          .report(object, { reason: `Bad User Score (${score_fmt})` })
+          .then(() => console.log(`u/${user.name}: Reported ${comment.id} (score=${data.score})`) )
+          .catch((e) => console.error(`u/${user.name}: Error reporting ${object.id}`, e));
+      }
+
+      // Remove
+      if (data.score >= 0.6) {
+        await object
+          .remove()
+          .then(() => console.log(`u/${user.name}: Removed ${comment.id} (score=${data.score})`) )
+          .catch((e) => console.error(`u/${user.name}: Error removing ${object.id}`, e));
+      }
+    }
+  } else {
+    console.log(`u/${user.name}: Insufficient history (comments=${data.comment_ids.length}) to action ${comment.id}`);
+  }
+
   data.comment_ids.push(comment.id);
   data.score = calculateScore(data);
   await context.redis.hset(user.name, {
@@ -142,7 +168,7 @@ async function getUserData(user: UserV2, redis: RedisClient): Promise<UserData> 
   return data;
 }
 
-function calculateScore(data: UserData, limit: number=5): number {
+function calculateScore(data: UserData, limit: number=10): number {
   const ids = data.comment_ids.slice(-limit);
   const removed = ids.filter(id => data.removed_comment_ids.includes(id));
   const score = removed.length / ids.length;
