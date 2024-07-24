@@ -1,5 +1,5 @@
-import { TriggerContext } from "@devvit/public-api";
-import { CommentSubmit, ModAction } from '@devvit/protos';
+import { RedisClient, TriggerContext } from "@devvit/public-api";
+import { CommentSubmit, ModAction, UserV2 } from '@devvit/protos';
 
 export async function onCommentSubmit(event: CommentSubmit, context: TriggerContext) {
   const comment = event.comment;
@@ -12,38 +12,23 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
     throw new Error('Missing `user` in onCommentSubmit');
   }
 
-  const data = await context.redis.hgetall(user.name);
+  const data = await getUserData(user, context.redis);
 
-  // hgetall is currently returning an empty object instead 
-  // of `undefined` when the key does not exist
-  let comment_ids: string[] = [];
-  let removed_comment_ids: string[] = [];
-  if (!data || Object.keys(data).length === 0) { // Initialize Redis hash for user
-    await context.redis.hset(user.name, {
-      ['id']: user.id,
-      ['name']: user.name,
-      ['comment_ids']: "[]",
-      ['removed_comment_ids']: "[]",
-      ['score']: "0",
-    });
-    console.log(`Initialized Redis hash for u/${user.name}`);
-  } else {
-    comment_ids = JSON.parse(data.comment_ids);
-    removed_comment_ids = JSON.parse(data.removed_comment_ids);
-  }
-  
-  if (comment_ids.includes(comment.id)) {
-    console.log(`Skipped ${comment.id} by u/${user.name}, already tracked`);
+  if (data.comment_ids.includes(comment.id)) {
+    console.log(`u/${user.name}: Skipped ${comment.id}, already tracked`);
     return;
   }
 
-  comment_ids.push(comment.id);
-  const score = calculateScore(comment_ids, removed_comment_ids);
+  data.comment_ids.push(comment.id);
+  data.score = calculateScore(data);
   await context.redis.hset(user.name, {
-    ['comment_ids']: JSON.stringify(comment_ids),
-    ['score']: JSON.stringify(score),
+    ['comment_ids']: JSON.stringify(data.comment_ids),
+    ['score']: JSON.stringify(data.score),
   });
-  console.log(`u/${user.name}: Added ${comment.id} (comments=${comment_ids.length}, removed=${removed_comment_ids.length}, score=${score})`);
+  console.log(`u/${user.name}: Added ${comment.id} ` +
+              `(comments=${data.comment_ids.length}, ` + 
+              `removed=${data.removed_comment_ids.length}, ` +
+              `score=${data.score})`);
 
   const data_updated = await context.redis.hgetall(user.name);
   console.log(`u/${user.name} user data:\n${JSON.stringify(data_updated, null, 2)}`);
@@ -70,45 +55,47 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
     throw new Error('Missing `user` in onModAction');
   }
 
-  const data = await context.redis.hgetall(user.name);
+  const data = await getUserData(user, context.redis);
 
-  // hgetall is currently returning an empty object instead 
-  // of `undefined` when the key does not exist
-  if (!data || Object.keys(data).length === 0) {
-    throw new Error(`Redis hash does not exist for user`);
+  if (data.comment_ids.length === 0) {
+    throw new Error(`u/${user.name}: No comments tracked`);
   }
 
-  const comment_ids: string[] = JSON.parse(data.comment_ids);
-  const removed_comment_ids: string[] = JSON.parse(data.removed_comment_ids);
-
-  if (!comment_ids.includes(comment.id)) {
-    throw new Error(`${comment.id} missing from comment_ids for u/${user.name}`);
+  if (!(data.comment_ids.includes(comment.id))) {
+    console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, missing from comment_ids`);
+    return;
   }
 
   if (action == "removecomment" || action == "spamcomment") {
-    if (!removed_comment_ids.includes(comment.id)) {
-      removed_comment_ids.push(comment.id);
-      const score = calculateScore(comment_ids, removed_comment_ids);
+    if (!data.removed_comment_ids.includes(comment.id)) {
+      data.removed_comment_ids.push(comment.id);
+      data.score = calculateScore(data);
       await context.redis.hset(user.name, {
-        ['removed_comment_ids']: JSON.stringify(removed_comment_ids),
-        ['score']: JSON.stringify(score),
+        ['removed_comment_ids']: JSON.stringify(data.removed_comment_ids),
+        ['score']: JSON.stringify(data.score),
       });
-      console.log(`u/${user.name}: ${action} on ${comment.id} (comments=${comment_ids.length}, removed=${removed_comment_ids.length}, score=${score})`)
+      console.log(`u/${user.name}: ${action} on ${comment.id} ` +
+                  `(comments=${data.comment_ids.length}, ` +
+                  `removed=${data.removed_comment_ids.length}, ` +
+                  `score=${data.score})`);
     } else {
       console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, already tracked`);
     }
   }
   
-  if (action == "approvecomment" && removed_comment_ids.includes(comment.id)) {
-    if (removed_comment_ids.includes(comment.id)) {
-      const index = removed_comment_ids.indexOf(comment.id);
-      removed_comment_ids.splice(index, 1);
-      const score = calculateScore(comment_ids, removed_comment_ids);
+  if (action == "approvecomment" && data.removed_comment_ids.includes(comment.id)) {
+    if (data.removed_comment_ids.includes(comment.id)) {
+      const index = data.removed_comment_ids.indexOf(comment.id);
+      data.removed_comment_ids.splice(index, 1);
+      data.score = calculateScore(data);
       await context.redis.hset(user.name, {
-        ['removed_comment_ids']: JSON.stringify(removed_comment_ids),
-        ['score']: JSON.stringify(score),
+        ['removed_comment_ids']: JSON.stringify(data.removed_comment_ids),
+        ['score']: JSON.stringify(data.score),
       });
-      console.log(`u/${user.name}: ${action} on ${comment.id} (comments=${comment_ids.length}, removed=${removed_comment_ids.length}, score=${score})`)
+      console.log(`u/${user.name}: ${action} on ${comment.id} ` +
+                  `(comments=${data.comment_ids.length}, ` +
+                  `removed=${data.removed_comment_ids.length}, ` +
+                  `score=${data.score})`);
     } else {
       console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, not tracked`);
     }
@@ -118,9 +105,46 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
   console.log(`u/${user.name} user data:\n${JSON.stringify(data_updated, null, 2)}`);
 }
 
-function calculateScore(comment_ids: string[], removed_comment_ids: string[], limit: number=5): number {
-  const comment_ids_slice = comment_ids.slice(-limit);
-  const union = comment_ids_slice.filter(id => removed_comment_ids.includes(id));
-  const score = union.length / comment_ids_slice.length;
+type UserData = {
+  id: string,
+  name: string,
+  comment_ids: string[],
+  removed_comment_ids: string[],
+  score: number,
+};
+
+async function getUserData(user: UserV2, redis: RedisClient): Promise<UserData> {
+  let hash = await redis.hgetall(user.name);
+
+  // Initialize Redis hash for user
+  // hgetall is currently returning an empty object instead 
+  // of `undefined` when the key does not exist
+  if (!hash || Object.keys(hash).length === 0) {
+    await redis.hset(user.name, {
+      ['id']: user.id,
+      ['name']: user.name,
+      ['comment_ids']: "[]",
+      ['removed_comment_ids']: "[]",
+      ['score']: "0",
+    });
+    console.log(`u/${user.name}: Initialized Redis hash`);
+    hash = (await redis.hgetall(user.name))!;
+  }
+
+  const data: UserData = {
+    id: hash.id,
+    name: hash.name,
+    comment_ids: JSON.parse(hash.comment_ids),
+    removed_comment_ids: JSON.parse(hash.removed_comment_ids),
+    score: Number(hash.score),
+  };
+
+  return data;
+}
+
+function calculateScore(data: UserData, limit: number=5): number {
+  const ids = data.comment_ids.slice(-limit);
+  const removed = ids.filter(id => data.removed_comment_ids.includes(id));
+  const score = removed.length / ids.length;
   return score;
 }
