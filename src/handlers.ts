@@ -19,7 +19,7 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
     return;
   }
 
-  // Action Comment, if enabled and eligible
+  // Action comment, if enabled and eligible
   if (data.comment_ids.length >= 5) {
     if (data.score >= 0.4) {
       const object = await context.reddit.getCommentById(comment.id);
@@ -42,7 +42,7 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
       }
     }
   } else {
-    console.log(`u/${user.name}: Insufficient history (comments=${data.comment_ids.length}) to action ${comment.id}`);
+    console.log(`u/${user.name}: Insufficient history to action ${comment.id} (comments=${data.comment_ids.length})`);
   }
 
   data.comment_ids.push(comment.id);
@@ -52,12 +52,9 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
     ['score']: JSON.stringify(data.score),
   });
   console.log(`u/${user.name}: Added ${comment.id} ` +
-              `(comments=${data.comment_ids.length}, ` + 
+              `(comments=${data.comment_ids.length}, ` +
               `removed=${data.removed_comment_ids.length}, ` +
               `score=${data.score})`);
-
-  const data_updated = await context.redis.hgetall(user.name);
-  console.log(`u/${user.name} user data:\n${JSON.stringify(data_updated, null, 2)}`);
 }
 
 export async function onModAction(event: ModAction, context: TriggerContext) {
@@ -67,7 +64,6 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
   }
 
   if (action != "removecomment" && action != "spamcomment" && action != "approvecomment") {
-    console.log(`Skipping ${action} ModAction`);
     return;
   }
 
@@ -126,9 +122,6 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
       console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, not tracked`);
     }
   }
-
-  const data_updated = await context.redis.hgetall(user.name);
-  console.log(`u/${user.name} user data:\n${JSON.stringify(data_updated, null, 2)}`);
 }
 
 type UserData = {
@@ -142,7 +135,7 @@ type UserData = {
 async function getUserData(user: UserV2, redis: RedisClient): Promise<UserData> {
   let hash = await redis.hgetall(user.name);
 
-  // Initialize Redis hash for user
+  // Initialize Redis hash for new user
   // hgetall is currently returning an empty object instead 
   // of `undefined` when the key does not exist
   if (!hash || Object.keys(hash).length === 0) {
@@ -153,10 +146,17 @@ async function getUserData(user: UserV2, redis: RedisClient): Promise<UserData> 
       ['removed_comment_ids']: "[]",
       ['score']: "0",
     });
-    console.log(`u/${user.name}: Initialized Redis hash`);
+    console.log(`u/${user.name}: Initialized Redis storage`);
     hash = (await redis.hgetall(user.name))!;
   }
 
+  // Ideally we would just store the whole UserData object as JSON
+  // in Redis. However, because there is a risk for race conditions 
+  // between the CommentSubmit and ModAction triggers, we need to be 
+  // able to independently set the values of `comment_ids` and 
+  // `removed_comment_ids` without writing the whole UserData object.
+  // This necessitates use of a Redis hash and this somewhat kludge
+  // parsing of its contents back into a UserData object.
   const data: UserData = {
     id: hash.id,
     name: hash.name,
