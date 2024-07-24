@@ -46,7 +46,7 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
   }
 
   data.comment_ids.push(comment.id);
-  data.score = calculateScore(data);
+  data.score = calculateScore(data, 10);
   await context.redis.hset(user.name, {
     ['comment_ids']: JSON.stringify(data.comment_ids),
     ['score']: JSON.stringify(data.score),
@@ -95,7 +95,7 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
   if (action == "removecomment" || action == "spamcomment") {
     if (!data.removed_comment_ids.includes(comment.id)) {
       data.removed_comment_ids.push(comment.id);
-      data.score = calculateScore(data);
+      data.score = calculateScore(data, 10);
       await context.redis.hset(user.name, {
         ['removed_comment_ids']: JSON.stringify(data.removed_comment_ids),
         ['score']: JSON.stringify(data.score),
@@ -113,7 +113,7 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
     if (data.removed_comment_ids.includes(comment.id)) {
       const index = data.removed_comment_ids.indexOf(comment.id);
       data.removed_comment_ids.splice(index, 1);
-      data.score = calculateScore(data);
+      data.score = calculateScore(data, 10);
       await context.redis.hset(user.name, {
         ['removed_comment_ids']: JSON.stringify(data.removed_comment_ids),
         ['score']: JSON.stringify(data.score),
@@ -168,8 +168,21 @@ async function getUserData(user: UserV2, redis: RedisClient): Promise<UserData> 
   return data;
 }
 
-function calculateScore(data: UserData, limit: number=10): number {
-  const ids = data.comment_ids.slice(-limit);
+/**
+ * Calculate the User Score for a user based on their recent comments
+ * 
+ * User Score = Fraction of recent comments that have been removed.
+ * Possible values range between [0, 1]. A minimum of 5 tracked
+ * comments are necessary to assign a non-zero score.
+ * @param data {@link UserData} for the target user
+ * @param num_comments Number of recent comments to use for calculating the User Score
+ * @returns A User Score
+ */
+function calculateScore(data: UserData, n_comments: number): number {
+  if (data.comment_ids.length < 5) {
+    return 0;
+  }
+  const ids = data.comment_ids.slice(-n_comments);
   const removed = ids.filter(id => data.removed_comment_ids.includes(id));
   const score = removed.length / ids.length;
   return score;
