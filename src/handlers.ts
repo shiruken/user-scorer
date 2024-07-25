@@ -3,6 +3,11 @@ import { CommentSubmit, ModAction } from '@devvit/protos';
 import { calculateScore } from "./scorer.js";
 import { getUserData, storeUserComments, storeUserRemovedComments } from "./storage.js";
 
+/**
+ * Tracks and actions new comments
+ * @param event A CommentSubmit trigger object
+ * @param context A TriggerContext object
+ */
 export async function onCommentSubmit(event: CommentSubmit, context: TriggerContext) {
   const comment = event.comment;
   if (!comment) {
@@ -59,6 +64,11 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
               `removed=${data.removed_comment_ids.length}, score=${data.score})`);
 }
 
+/**
+ * Tracks comment removal status
+ * @param event A ModAction trigger object
+ * @param context A TriggerContext object
+ */
 export async function onModAction(event: ModAction, context: TriggerContext) {
   const action = event.action;
   if (!action) {

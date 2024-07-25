@@ -2,25 +2,49 @@ import { RedisClient } from "@devvit/public-api";
 import { UserV2 } from '@devvit/protos';
 import { UserData } from "./types.js";
 
-const USER_KEY = "#users";
+const USERS_KEY = "#users";
 
+/**
+ * Initializes Redis hash for user
+ * @param user A UserV2 object
+ * @param redis A RedisClient object
+ * @returns A map of fields and their values stored in the hash
+ */
+async function initUserData(user: UserV2, redis: RedisClient): Promise<Record<string, string>> {
+  // Initialize Redis hash
+  await redis.hset(user.name, {
+    ['id']: user.id,
+    ['name']: user.name,
+    ['comment_ids']: "[]",
+    ['removed_comment_ids']: "[]",
+    ['score']: "0",
+  });
+
+  // Add to sorted set of all users
+  await redis.zAdd(USERS_KEY, { member: user.name, score: 0 });
+
+  const hash = await redis.hgetall(user.name);
+  if (!hash) {
+    throw new Error(`u/${user.name}: Failed to initialize Redis storage`);
+  }
+  console.log(`u/${user.name}: Initialized Redis storage`);
+  return hash;
+}
+
+/**
+ * Read user data from Redis.
+ * Creates a Redis hash for user if one does not already exist.
+ * @param user A UserV2 object
+ * @param redis A RedisClient object
+ * @returns A Promise that resolves to a {@link UserData} object
+ */
 export async function getUserData(user: UserV2, redis: RedisClient): Promise<UserData> {
   let hash = await redis.hgetall(user.name);
 
-  // Initialize Redis hash for new user
   // hgetall is currently returning an empty object instead 
   // of `undefined` when the key does not exist
   if (!hash || Object.keys(hash).length === 0) {
-    await redis.zAdd(USER_KEY, { member: user.name, score: 0 }); // Add to sorted set of all users
-    await redis.hset(user.name, {
-      ['id']: user.id,
-      ['name']: user.name,
-      ['comment_ids']: "[]",
-      ['removed_comment_ids']: "[]",
-      ['score']: "0",
-    });
-    console.log(`u/${user.name}: Initialized Redis storage`);
-    hash = (await redis.hgetall(user.name))!;
+    hash = await initUserData(user, redis); // Initialize storage for new user
   }
 
   // Ideally we would just store the whole UserData object as JSON
@@ -41,6 +65,11 @@ export async function getUserData(user: UserV2, redis: RedisClient): Promise<Use
   return data;
 }
 
+/**
+ * Write comments and score for user to Redis
+ * @param data A {@link UserData} object
+ * @param redis A RedisClient object
+ */
 export async function storeUserComments(data: UserData, redis: RedisClient) {
   // Update comments in user hash
   await redis.hset(data.name, {
@@ -49,9 +78,14 @@ export async function storeUserComments(data: UserData, redis: RedisClient) {
   });
 
   // Update score in sorted set of all users
-  await redis.zAdd(USER_KEY, { member: data.name, score: data.score });
+  await redis.zAdd(USERS_KEY, { member: data.name, score: data.score });
 }
 
+/**
+ * Write removed comments and score for user to Redis
+ * @param data A {@link UserData} object
+ * @param redis A RedisClient object
+ */
 export async function storeUserRemovedComments(data: UserData, redis: RedisClient) {
   // Update removed comments in user hash
   await redis.hset(data.name, {
@@ -60,5 +94,5 @@ export async function storeUserRemovedComments(data: UserData, redis: RedisClien
   });
 
   // Update score in sorted set of all users
-  await redis.zAdd(USER_KEY, { member: data.name, score: data.score });
+  await redis.zAdd(USERS_KEY, { member: data.name, score: data.score });
 }
