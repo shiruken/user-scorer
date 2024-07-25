@@ -1,7 +1,7 @@
 import { TriggerContext } from "@devvit/public-api";
 import { CommentSubmit, ModAction } from '@devvit/protos';
 import { calculateScore } from "./scorer.js";
-import { getUserData, storeUserComments, storeUserRemovedComments } from "./storage.js";
+import { getUserData, storeComments, storeRemovedComments } from "./storage.js";
 
 /**
  * Tracks and actions new comments
@@ -59,7 +59,7 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
 
   data.comment_ids.push(comment.id);
   data.score = calculateScore(data, 10);
-  await storeUserComments(data, context.redis);
+  await storeComments(data, context.redis);
   console.log(`u/${user.name}: Added ${comment.id} (comments=${data.comment_ids.length}, ` +
               `removed=${data.removed_comment_ids.length}, score=${data.score})`);
 }
@@ -104,7 +104,7 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
     if (!data.removed_comment_ids.includes(comment.id)) {
       data.removed_comment_ids.push(comment.id);
       data.score = calculateScore(data, 10);
-      storeUserRemovedComments(data, context.redis);
+      storeRemovedComments(data, context.redis);
       console.log(`u/${user.name}: ${action} on ${comment.id} (comments=${data.comment_ids.length}, ` +
                   `removed=${data.removed_comment_ids.length}, score=${data.score})`);
     } else {
@@ -117,7 +117,7 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
       const index = data.removed_comment_ids.indexOf(comment.id);
       data.removed_comment_ids.splice(index, 1);
       data.score = calculateScore(data, 10);
-      storeUserRemovedComments(data, context.redis);
+      storeRemovedComments(data, context.redis);
       console.log(`u/${user.name}: ${action} on ${comment.id} (comments=${data.comment_ids.length}, ` +
                   `removed=${data.removed_comment_ids.length}, score=${data.score})`);
     } else {

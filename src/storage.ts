@@ -5,7 +5,7 @@ import { UserData } from "./types.js";
 const USERS_KEY = "#users";
 
 /**
- * Initializes Redis hash for user
+ * Initializes Redis storage for user
  * @param user A UserV2 object
  * @param redis A RedisClient object
  * @returns A map of fields and their values stored in the hash
@@ -32,8 +32,7 @@ async function initUserData(user: UserV2, redis: RedisClient): Promise<Record<st
 }
 
 /**
- * Read user data from Redis.
- * Creates a Redis hash for user if one does not already exist.
+ * Read user data from Redis
  * @param user A UserV2 object
  * @param redis A RedisClient object
  * @returns A Promise that resolves to a {@link UserData} object
@@ -70,7 +69,7 @@ export async function getUserData(user: UserV2, redis: RedisClient): Promise<Use
  * @param data A {@link UserData} object
  * @param redis A RedisClient object
  */
-export async function storeUserComments(data: UserData, redis: RedisClient) {
+export async function storeComments(data: UserData, redis: RedisClient) {
   // Update comments in user hash
   await redis.hset(data.name, {
     ['comment_ids']: JSON.stringify(data.comment_ids),
@@ -86,7 +85,7 @@ export async function storeUserComments(data: UserData, redis: RedisClient) {
  * @param data A {@link UserData} object
  * @param redis A RedisClient object
  */
-export async function storeUserRemovedComments(data: UserData, redis: RedisClient) {
+export async function storeRemovedComments(data: UserData, redis: RedisClient) {
   // Update removed comments in user hash
   await redis.hset(data.name, {
     ['removed_comment_ids']: JSON.stringify(data.removed_comment_ids),
