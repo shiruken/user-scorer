@@ -1,6 +1,11 @@
 import { UserData } from "./types.js";
 
 /**
+ * Minimum number of tracked comments necessary to start calculating User Scores
+ */
+export const MIN_NUM_COMMENTS: number = 5;
+
+/**
  * Calculate the User Score for a user based on their recent comments
  * 
  * User Score = Fraction of recent comments that have been removed.
@@ -11,7 +16,7 @@ import { UserData } from "./types.js";
  * @returns A User Score
  */
 export function calculateScore(data: UserData, n_comments: number): number {
-  if (data.comment_ids.length < 5) {
+  if (data.comment_ids.length < MIN_NUM_COMMENTS) {
     return 0;
   }
   const ids = data.comment_ids.slice(-n_comments);

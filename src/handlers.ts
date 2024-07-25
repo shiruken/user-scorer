@@ -1,6 +1,6 @@
 import { TriggerContext } from "@devvit/public-api";
 import { CommentSubmit, ModAction } from '@devvit/protos';
-import { calculateScore } from "./scorer.js";
+import { calculateScore, MIN_NUM_COMMENTS } from "./scorer.js";
 import { getUserData, storeComments, storeRemovedComments } from "./storage.js";
 
 /**
@@ -27,7 +27,7 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
   }
 
   // Action comment, if enabled and eligible
-  if (data.comment_ids.length >= 5) {
+  if (data.comment_ids.length >= MIN_NUM_COMMENTS) {
     if (data.score >= 0.4) {
       const object = await context.reddit.getCommentById(comment.id);
 
