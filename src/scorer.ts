@@ -1,9 +1,5 @@
+import { MIN_NUM_COMMENTS } from "./constants.js";
 import { UserData } from "./types.js";
-
-/**
- * Minimum number of tracked comments necessary to start calculating User Scores
- */
-export const MIN_NUM_COMMENTS: number = 5;
 
 /**
  * Calculate the User Score for a user based on their recent comments

@@ -1,4 +1,5 @@
 import { SettingsClient, SettingsFormField, SettingsFormFieldValidatorEvent } from '@devvit/public-api';
+import { MAX_ITEMS, MIN_NUM_COMMENTS } from './constants.js';
 import { AppSettings } from './types.js';
 
 export const settings: SettingsFormField[] = [
@@ -6,7 +7,8 @@ export const settings: SettingsFormField[] = [
     type: "number",
     name: "numComments",
     label: "Number of Comments",
-    helpText: "How many recent comments to consider when calculating User Score (Minimum: 5)",
+    helpText: `How many recent comments to consider when calculating User Score ` +
+              `(Minimum: ${MIN_NUM_COMMENTS}, Maximum: ${MAX_ITEMS})`,
     defaultValue: 10,
     onValidate: validateNumComments,
   },
@@ -24,7 +26,8 @@ export const settings: SettingsFormField[] = [
         type: "number",
         name: "reportThreshold",
         label: "Report Threshold [0-1]",
-        helpText: "Report comments from users with a User Score greater than or equal to this value (Should be less than the Remove Threshold)",
+        helpText: `Report comments from users with a User Score greater than or equal ` +
+                  `to this value (Should be less than the Remove Threshold)`,
         defaultValue: 0.4,
         onValidate: validateThreshold,
       },
@@ -44,7 +47,8 @@ export const settings: SettingsFormField[] = [
         type: "number",
         name: "removeThreshold",
         label: "Remove Threshold [0-1]",
-        helpText: "Remove comments from users with a User Score greater than or equal to this value (Should be greater than the Report Threshold)",
+        helpText: `Remove comments from users with a User Score greater than or equal ` +
+                  `to this value (Should be greater than the Report Threshold)`,
         defaultValue: 0.6,
         onValidate: validateThreshold,
       },
@@ -64,10 +68,13 @@ function validateNumComments(event: SettingsFormFieldValidatorEvent<number>): vo
     return "Required";
   }
   if (!Number.isInteger(event.value)) {
-    return "Must be a positive integer greater than or equal to 5";
+    return `Must be a positive integer greater than or equal to ${MIN_NUM_COMMENTS}`;
   }
-  if (event.value < 5) {
-    return "Must be greater than or equal to 5";
+  if (event.value < MIN_NUM_COMMENTS) {
+    return `Must be greater than or equal to ${MIN_NUM_COMMENTS}`;
+  }
+  if (event.value > MAX_ITEMS) {
+    return `Must be less than or equal to ${MAX_ITEMS}`;
   }
 }
 

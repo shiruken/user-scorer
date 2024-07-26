@@ -1,8 +1,7 @@
 import { RedisClient } from "@devvit/public-api";
 import { UserV2 } from '@devvit/protos';
+import { USERS_KEY } from "./constants.js";
 import { UserData } from "./types.js";
-
-const USERS_KEY = "#users";
 
 /**
  * Initializes Redis storage for user

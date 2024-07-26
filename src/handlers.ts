@@ -1,6 +1,7 @@
 import { TriggerContext } from "@devvit/public-api";
 import { CommentSubmit, ModAction } from '@devvit/protos';
-import { calculateScore, MIN_NUM_COMMENTS } from "./scorer.js";
+import { MAX_ITEMS, MIN_NUM_COMMENTS } from "./constants.js";
+import { calculateScore } from "./scorer.js";
 import { getAppSettings } from "./settings.js";
 import { getUserData, storeComments, storeRemovedComments } from "./storage.js";
 
@@ -71,7 +72,15 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
     console.error('No actions are enabled in app Installation Settings');
   }
 
-  data.comment_ids.push(comment.id);
+  data.comment_ids.push(comment.id); // Track comment
+
+  // Purge old comments to adhere to tracking limit
+  while (data.comment_ids.length > MAX_ITEMS) {
+    const comment_old = data.comment_ids.shift();
+    console.log(`u/${user.name}: Purged old comment ${comment_old} from tracking ` +
+                `(comments=${data.comment_ids.length})`);
+  }
+
   data.score = calculateScore(data, settings.numComments);
   await storeComments(data, context.redis);
   console.log(`u/${user.name}: Added ${comment.id} (comments=${data.comment_ids.length}, ` +
@@ -125,6 +134,14 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
   if (action == "removecomment" || action == "spamcomment") {
     if (!data.removed_comment_ids.includes(comment.id)) {
       data.removed_comment_ids.push(comment.id);
+
+      // Purge old removed comments to adhere to tracking limit
+      while (data.removed_comment_ids.length > MAX_ITEMS) {
+        const comment_old = data.removed_comment_ids.shift();
+        console.log(`u/${user.name}: Purged old removed comment ${comment_old} from tracking ` +
+                    `(removed=${data.removed_comment_ids.length})`);
+      }
+
       data.score = calculateScore(data, settings.numComments);
       storeRemovedComments(data, context.redis);
       console.log(`u/${user.name}: ${action} on ${comment.id} (comments=${data.comment_ids.length}, ` +
