@@ -23,8 +23,8 @@ export const settings: SettingsFormField[] = [
       {
         type: "number",
         name: "reportThreshold",
-        label: "Report Threshold",
-        helpText: "Report comments from users with a User Score greater than or equal to this value (Must be between 0 and 1; Should be less than the Remove Threshold)",
+        label: "Report Threshold [0-1]",
+        helpText: "Report comments from users with a User Score greater than or equal to this value (Should be less than the Remove Threshold)",
         defaultValue: 0.4,
         onValidate: validateThreshold,
       },
@@ -43,8 +43,8 @@ export const settings: SettingsFormField[] = [
       {
         type: "number",
         name: "removeThreshold",
-        label: "Remove Threshold",
-        helpText: "Remove comments from users with a User Score greater than or equal to this value (Must be between 0 and 1; Should be greater than the Report Threshold)",
+        label: "Remove Threshold [0-1]",
+        helpText: "Remove comments from users with a User Score greater than or equal to this value (Should be greater than the Report Threshold)",
         defaultValue: 0.6,
         onValidate: validateThreshold,
       },
@@ -58,7 +58,9 @@ export const settings: SettingsFormField[] = [
  * @returns Returns a string containing an error message if invalid
  */
 function validateNumComments(event: SettingsFormFieldValidatorEvent<number>): void | string {
-  if (!event.value) {
+  // Settings fields of type `number` currently force a value of 0 when no value
+  // is submitted. This makes it impossible to check for empty fields. 
+  if (event.value === undefined) {
     return "Required";
   }
   if (!Number.isInteger(event.value)) {
@@ -75,7 +77,7 @@ function validateNumComments(event: SettingsFormFieldValidatorEvent<number>): vo
  * @returns Returns a string containing an error message if invalid
  */
 function validateThreshold(event: SettingsFormFieldValidatorEvent<number>): void | string {
-  // Settings fields of type "number" currently force a value of 0 when no value
+  // Settings fields of type `number` currently force a value of 0 when no value
   // is submitted. This makes it impossible to check for empty fields and means
   // that the threshold will be set to 0 even if the user did not mean to do so.
   if (event.value === undefined) {
