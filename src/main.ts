@@ -1,10 +1,13 @@
 import { Devvit } from '@devvit/public-api';
 import { onCommentSubmit, onModAction } from './handlers.js';
+import { getAppSettings, settings } from './settings.js';
 
 Devvit.configure({
   redditAPI: true,
   redis: true,
 });
+
+Devvit.addSettings(settings);
 
 Devvit.addTrigger({
   event: 'CommentSubmit',
@@ -34,6 +37,16 @@ Devvit.addMenuItem({
   onPress: async(_event, context) => {
     const users = await context.redis.zRange("#users", 0, -1);
     console.log(users);
+  },
+});
+
+Devvit.addMenuItem({
+  label: 'Get Settings',
+  location: 'subreddit',
+  forUserType: 'moderator',
+  onPress: async(_event, context) => {
+    const settings = await getAppSettings(context.settings);
+    console.log(settings);
   },
 });
 

@@ -1,4 +1,20 @@
 /**
+ * App installation settings
+ */
+export type AppSettings = {
+  /** Number of recent comments to consider during scoring */
+  numComments: number;
+  /** Enable reporting of comments that exceed Report Threshold */
+  reportComments: boolean;
+  /** Report comments with User Score greater than or equal to this value */
+  reportThreshold: number;
+  /** Enable removing of comments that exceed Remove Threshold */
+  removeComments: boolean;
+  /** Remove comments with User Score greater than or equal to this value */
+  removeThreshold: number;
+};
+
+/**
  * Structure for user data stored in Redis
  */
 export type UserData = {
