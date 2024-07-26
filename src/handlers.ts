@@ -20,6 +20,11 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
     throw new Error('Missing `user` in onCommentSubmit');
   }
 
+  // Ignore comments from AutoModerator or subreddit mod team account
+  if (user.name == "AutoModerator" || (user.name == `${event.subreddit!.name}-ModTeam`)) {
+    return;
+  }
+
   const data = await getUserData(user, context.redis);
 
   if (data.comment_ids.includes(comment.id)) {
@@ -84,6 +89,7 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
     throw new Error('Missing `action` in onModAction');
   }
 
+  // We only care about comment removals and approvals
   if (action != "removecomment" && action != "spamcomment" && action != "approvecomment") {
     return;
   }
@@ -96,6 +102,11 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
   const user = event.targetUser;
   if (!user) {
     throw new Error('Missing `user` in onModAction');
+  }
+
+  // Ignore actions targeting AutoModerator or subreddit mod team account
+  if (user.name == "AutoModerator" || (user.name == `${event.subreddit!.name}-ModTeam`)) {
+    return;
   }
 
   const data = await getUserData(user, context.redis);
