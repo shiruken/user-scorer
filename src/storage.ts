@@ -17,6 +17,7 @@ async function initUserData(user: UserV2, redis: RedisClient): Promise<Record<st
     ['comment_ids']: "[]",
     ['removed_comment_ids']: "[]",
     ['score']: "0",
+    ['numComments_for_score']: "0",
   });
 
   // Add to sorted set of all users
@@ -58,6 +59,7 @@ export async function getUserData(user: UserV2, redis: RedisClient): Promise<Use
     comment_ids: JSON.parse(hash.comment_ids),
     removed_comment_ids: JSON.parse(hash.removed_comment_ids),
     score: Number(hash.score),
+    numComments_for_score: Number(hash.numComments_for_score),
   };
 
   return data;
@@ -69,10 +71,11 @@ export async function getUserData(user: UserV2, redis: RedisClient): Promise<Use
  * @param redis A RedisClient object
  */
 export async function storeComments(data: UserData, redis: RedisClient) {
-  // Update comments in user hash
+  // Update comments and score in user hash
   await redis.hset(data.name, {
     ['comment_ids']: JSON.stringify(data.comment_ids),
     ['score']: JSON.stringify(data.score),
+    ['numComments_for_score']: JSON.stringify(data.numComments_for_score),
   });
 
   // Update score in sorted set of all users
@@ -85,10 +88,11 @@ export async function storeComments(data: UserData, redis: RedisClient) {
  * @param redis A RedisClient object
  */
 export async function storeRemovedComments(data: UserData, redis: RedisClient) {
-  // Update removed comments in user hash
+  // Update removed comments and score in user hash
   await redis.hset(data.name, {
     ['removed_comment_ids']: JSON.stringify(data.removed_comment_ids),
     ['score']: JSON.stringify(data.score),
+    ['numComments_for_score']: JSON.stringify(data.numComments_for_score),
   });
 
   // Update score in sorted set of all users

@@ -36,7 +36,9 @@ Devvit.addMenuItem({
   forUserType: 'moderator',
   onPress: async(_event, context) => {
     const users = await context.redis.zRange("#users", 0, -1);
-    console.log(users);
+    console.log(`\n#users: ${JSON.stringify(users, null, 2)}`);
+    const user = await context.redis.hgetall("shiruken");
+    console.log(`\nu/shiruken: ${JSON.stringify(user, null, 2)}`);
   },
 });
 

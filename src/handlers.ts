@@ -38,6 +38,13 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
   // Action comment, if enabled and eligible
   if (settings.reportComments || settings.removeComments) {
     if (data.comment_ids.length >= MIN_NUM_COMMENTS) {
+
+      // Recalculate score if app settings were changed since last score
+      if (settings.numComments != data.numComments_for_score) {
+        data.score = calculateScore(data, settings.numComments);
+        console.log(`u/${user.name}: Recalculated score on settings change (score=${data.score})`);
+      }
+
       if (data.score >= Math.min(settings.reportThreshold, settings.removeThreshold)) {
         const object = await context.reddit.getCommentById(comment.id);
 
@@ -82,6 +89,7 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
   }
 
   data.score = calculateScore(data, settings.numComments);
+  data.numComments_for_score = settings.numComments;
   await storeComments(data, context.redis);
   console.log(`u/${user.name}: Added ${comment.id} (comments=${data.comment_ids.length}, ` +
               `removed=${data.removed_comment_ids.length}, score=${data.score})`);
@@ -143,6 +151,7 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
       }
 
       data.score = calculateScore(data, settings.numComments);
+      data.numComments_for_score = settings.numComments;
       storeRemovedComments(data, context.redis);
       console.log(`u/${user.name}: ${action} on ${comment.id} (comments=${data.comment_ids.length}, ` +
                   `removed=${data.removed_comment_ids.length}, score=${data.score})`);
@@ -156,6 +165,7 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
       const index = data.removed_comment_ids.indexOf(comment.id);
       data.removed_comment_ids.splice(index, 1);
       data.score = calculateScore(data, settings.numComments);
+      data.numComments_for_score = settings.numComments;
       storeRemovedComments(data, context.redis);
       console.log(`u/${user.name}: ${action} on ${comment.id} (comments=${data.comment_ids.length}, ` +
                   `removed=${data.removed_comment_ids.length}, score=${data.score})`);

@@ -28,4 +28,6 @@ export type UserData = {
   removed_comment_ids: string[];
   /** Current User Score */
   score: number;
+  /** numComments app setting when the current User Score was calculated*/
+  numComments_for_score: number,
 };
