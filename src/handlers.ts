@@ -46,7 +46,7 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
       }
 
       if (data.score >= Math.min(settings.reportThreshold, settings.removeThreshold)) {
-        const object = await context.reddit.getCommentById(comment.id);
+        const commentAPI = await context.reddit.getCommentById(comment.id);
 
         // Report
         if (settings.reportComments && data.score >= settings.reportThreshold) {
@@ -54,22 +54,25 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
           const num_recent_comments = Math.min(data.comment_ids.length, settings.numComments);
           const num_recent_removed = num_recent_comments * data.score;
           await context.reddit
-            .report(object, {
+            .report(commentAPI, {
               reason: `Bad User Score (${score_fmt}: ${num_recent_removed} ` +
                       `of ${num_recent_comments} recent comments removed)`,
             })
-            .then(() => console.log(`u/${user.name}: Reported ${comment.id} (score=${data.score})`) )
-            .catch((e) => console.error(`u/${user.name}: Error reporting ${object.id}`, e));
+            .then(() => console.log(`u/${user.name}: Reported ${commentAPI.id} (score=${data.score})`) )
+            .catch((e) => console.error(`u/${user.name}: Error reporting ${commentAPI.id}`, e));
         }
 
         // Remove
         if (settings.removeComments && data.score >= settings.removeThreshold) {
-          await object
-            .remove()
-            .then(() => console.log(`u/${user.name}: Removed ${comment.id} (score=${data.score})`) )
-            .catch((e) => console.error(`u/${user.name}: Error removing ${object.id}`, e));
+          if (!commentAPI.removed || !commentAPI.spam) {
+            await commentAPI
+              .remove()
+              .then(() => console.log(`u/${user.name}: Removed ${commentAPI.id} (score=${data.score})`) )
+              .catch((e) => console.error(`u/${user.name}: Error removing ${commentAPI.id}`, e));
+          } else {
+            console.log(`u/${user.name}: ${commentAPI.id} is already removed, skipping`);
+          }
         }
-
       }
     } else {
       console.log(`u/${user.name}: Insufficient history to action ${comment.id} ` +
