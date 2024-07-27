@@ -1,9 +1,9 @@
-import { TriggerContext } from "@devvit/public-api";
+import { Context, MenuItemOnPressEvent, TriggerContext } from "@devvit/public-api";
 import { CommentSubmit, ModAction } from '@devvit/protos';
 import { MIN_NUM_COMMENTS } from "./constants.js";
 import { calculateScore } from "./scorer.js";
 import { getAppSettings } from "./settings.js";
-import { getUserData, storeComments, storeRemovedComments, trimArray } from "./storage.js";
+import { getUserData, initUserData, storeComments, storeRemovedComments, trimArray } from "./storage.js";
 
 /**
  * Track and action new comments
@@ -26,7 +26,10 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
     return;
   }
 
-  const data = await getUserData(user, context.redis);
+  let data = await getUserData(user.name, context.redis);
+  if (!data) {
+    data = await initUserData(user.name, user.id, context.redis);
+  }
 
   if (data.comment_ids.includes(comment.id)) {
     console.log(`u/${user.name}: Skipped ${comment.id}, already tracked`);
@@ -122,7 +125,10 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
     return;
   }
 
-  const data = await getUserData(user, context.redis);
+  let data = await getUserData(user.name, context.redis);
+  if (!data) {
+    data = await initUserData(user.name, user.id, context.redis);
+  }
 
   if (data.comment_ids.length === 0) {
     throw new Error(`u/${user.name}: No comments tracked`);

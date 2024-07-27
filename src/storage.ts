@@ -1,19 +1,19 @@
 import { RedisClient } from "@devvit/public-api";
-import { UserV2 } from '@devvit/protos';
 import { MAX_ITEMS, USERS_KEY } from "./constants.js";
 import { UserData } from "./types.js";
 
 /**
  * Initializes Redis storage for user
- * @param user A UserV2 object
+ * @param username A Reddit username
+ * @param username A Reddit user thing ID (t2_*)
  * @param redis A RedisClient object
- * @returns A map of fields and their values stored in the hash
+ * @returns A Promise that resolves to a {@link UserData} object
  */
-async function initUserData(user: UserV2, redis: RedisClient): Promise<Record<string, string>> {
+export async function initUserData(username: string, id: string, redis: RedisClient): Promise<UserData> {
   // Initialize Redis hash
-  await redis.hset(user.name, {
-    ['id']: user.id,
-    ['name']: user.name,
+  await redis.hset(username, {
+    ['id']: id,
+    ['name']: username,
     ['comment_ids']: "[]",
     ['removed_comment_ids']: "[]",
     ['score']: "0",
@@ -21,29 +21,29 @@ async function initUserData(user: UserV2, redis: RedisClient): Promise<Record<st
   });
 
   // Add to sorted set of all users
-  await redis.zAdd(USERS_KEY, { member: user.name, score: 0 });
+  await redis.zAdd(USERS_KEY, { member: username, score: 0 });
 
-  const hash = await redis.hgetall(user.name);
-  if (!hash) {
-    throw new Error(`u/${user.name}: Failed to initialize Redis storage`);
+  const data = await getUserData(username, redis);
+  if (!data) {
+    throw new Error(`u/${username}: Failed to initialize Redis storage`);
   }
-  console.log(`u/${user.name}: Initialized Redis storage`);
-  return hash;
+  console.log(`u/${username}: Initialized Redis storage`);
+  return data;
 }
 
 /**
  * Read user data from Redis
- * @param user A UserV2 object
+ * @param username A Reddit username
  * @param redis A RedisClient object
- * @returns A Promise that resolves to a {@link UserData} object
+ * @returns A Promise that resolves to a {@link UserData} object if the user exists
  */
-export async function getUserData(user: UserV2, redis: RedisClient): Promise<UserData> {
-  let hash = await redis.hgetall(user.name);
+export async function getUserData(username: string, redis: RedisClient): Promise<UserData | undefined> {
+  let hash = await redis.hgetall(username);
 
   // hgetall is currently returning an empty object instead 
   // of `undefined` when the key does not exist
   if (!hash || Object.keys(hash).length === 0) {
-    hash = await initUserData(user, redis); // Initialize storage for new user
+    return undefined;
   }
 
   // Ideally we would just store the whole UserData object as JSON
