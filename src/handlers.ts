@@ -144,7 +144,7 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
 
   if (action == "removecomment" || action == "spamcomment") {
     if (!data.removed_comment_ids.includes(comment.id)) {
-      data.removed_comment_ids.push(comment.id);
+      data.removed_comment_ids.push(comment.id); // Track comment
 
       // Purge old removed comments to adhere to tracking limit
       while (data.removed_comment_ids.length > MAX_ITEMS) {
@@ -153,9 +153,20 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
                     `(removed=${data.removed_comment_ids.length})`);
       }
 
+      if (event.moderator && event.moderator.name == "AutoModerator") {
+        data.automod_comment_ids.push(comment.id); // Track comment
+
+        // Purge old AutoMod removed comments to adhere to tracking limit
+        while (data.automod_comment_ids.length > MAX_ITEMS) {
+          const comment_old = data.automod_comment_ids.shift();
+          console.log(`u/${user.name}: Purged old AutoMod removed comment ${comment_old} from tracking ` +
+                      `(automod=${data.automod_comment_ids.length})`);
+        }
+      }
+
       data.score = calculateScore(data, settings.numComments);
       data.numComments_for_score = settings.numComments;
-      storeRemovedComments(data, context.redis);
+      await storeRemovedComments(data, context.redis);
       console.log(`u/${user.name}: ${action} on ${comment.id} (comments=${data.comment_ids.length}, ` +
                   `removed=${data.removed_comment_ids.length}, score=${data.score})`);
     } else {
@@ -166,10 +177,10 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
   if (action == "approvecomment" && data.removed_comment_ids.includes(comment.id)) {
     if (data.removed_comment_ids.includes(comment.id)) {
       const index = data.removed_comment_ids.indexOf(comment.id);
-      data.removed_comment_ids.splice(index, 1);
+      data.removed_comment_ids.splice(index, 1); // Stop tracking comment
       data.score = calculateScore(data, settings.numComments);
       data.numComments_for_score = settings.numComments;
-      storeRemovedComments(data, context.redis);
+      await storeRemovedComments(data, context.redis);
       console.log(`u/${user.name}: ${action} on ${comment.id} (comments=${data.comment_ids.length}, ` +
                   `removed=${data.removed_comment_ids.length}, score=${data.score})`);
     } else {
