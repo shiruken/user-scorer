@@ -9,11 +9,13 @@ Devvit.configure({
 
 Devvit.addSettings(settings);
 
+// Track and action new comments
 Devvit.addTrigger({
   event: 'CommentSubmit',
   onEvent: onCommentSubmit,
 });
 
+// Track comment removal status
 Devvit.addTrigger({
   event: 'ModAction',
   onEvent: onModAction,

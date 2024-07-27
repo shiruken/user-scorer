@@ -6,7 +6,7 @@ import { getAppSettings } from "./settings.js";
 import { getUserData, storeComments, storeRemovedComments, trimArray } from "./storage.js";
 
 /**
- * Tracks and actions new comments
+ * Track and action new comments
  * @param event A CommentSubmit trigger object
  * @param context A TriggerContext object
  */
@@ -92,7 +92,7 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
 }
 
 /**
- * Tracks comment removal status
+ * Track comment removal status
  * @param event A ModAction trigger object
  * @param context A TriggerContext object
  */
