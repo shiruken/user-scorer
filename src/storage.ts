@@ -1,6 +1,6 @@
 import { RedisClient } from "@devvit/public-api";
 import { UserV2 } from '@devvit/protos';
-import { USERS_KEY } from "./constants.js";
+import { MAX_ITEMS, USERS_KEY } from "./constants.js";
 import { UserData } from "./types.js";
 
 /**
@@ -97,4 +97,17 @@ export async function storeRemovedComments(data: UserData, redis: RedisClient) {
 
   // Update score in sorted set of all users
   await redis.zAdd(USERS_KEY, { member: data.name, score: data.score });
+}
+
+/**
+ * Trim array to adhere to item tracking limit
+ * @param array String array to trim
+ * @returns Trimmed string array
+ */
+export function trimArray(array: string[]): string[] {
+  while (array.length > MAX_ITEMS) {
+    const id = array.shift();
+    console.log(`Purged ${id} from tracking`);
+  }
+  return array;
 }

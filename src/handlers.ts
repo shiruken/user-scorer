@@ -1,9 +1,9 @@
 import { TriggerContext } from "@devvit/public-api";
 import { CommentSubmit, ModAction } from '@devvit/protos';
-import { MAX_ITEMS, MIN_NUM_COMMENTS } from "./constants.js";
+import { MIN_NUM_COMMENTS } from "./constants.js";
 import { calculateScore } from "./scorer.js";
 import { getAppSettings } from "./settings.js";
-import { getUserData, storeComments, storeRemovedComments } from "./storage.js";
+import { getUserData, storeComments, storeRemovedComments, trimArray } from "./storage.js";
 
 /**
  * Tracks and actions new comments
@@ -83,14 +83,7 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
   }
 
   data.comment_ids.push(comment.id); // Track comment
-
-  // Purge old comments to adhere to tracking limit
-  while (data.comment_ids.length > MAX_ITEMS) {
-    const comment_old = data.comment_ids.shift();
-    console.log(`u/${user.name}: Purged old comment ${comment_old} from tracking ` +
-                `(comments=${data.comment_ids.length})`);
-  }
-
+  data.comment_ids = trimArray(data.comment_ids);
   data.score = calculateScore(data, settings.numComments);
   data.numComments_for_score = settings.numComments;
   await storeComments(data, context.redis);
@@ -136,7 +129,7 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
   }
 
   if (!(data.comment_ids.includes(comment.id))) {
-    console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, missing from comment_ids`);
+    console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, missing from tracked comments`);
     return;
   }
 
@@ -145,21 +138,14 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
   if (action == "removecomment" || action == "spamcomment") {
     if (!data.removed_comment_ids.includes(comment.id)) {
       data.removed_comment_ids.push(comment.id); // Track comment
-
-      // Purge old removed comments to adhere to tracking limit
-      while (data.removed_comment_ids.length > MAX_ITEMS) {
-        const comment_old = data.removed_comment_ids.shift();
-        console.log(`u/${user.name}: Purged old removed comment ${comment_old} from tracking ` +
-                    `(removed=${data.removed_comment_ids.length})`);
-      }
-
+      data.removed_comment_ids = trimArray(data.removed_comment_ids);
       data.score = calculateScore(data, settings.numComments);
       data.numComments_for_score = settings.numComments;
       await storeRemovedComments(data, context.redis);
       console.log(`u/${user.name}: ${action} on ${comment.id} (comments=${data.comment_ids.length}, ` +
                   `removed=${data.removed_comment_ids.length}, score=${data.score})`);
     } else {
-      console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, already tracked as removed`);
+      console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, already tracked in removed comments`);
     }
   }
   
@@ -173,7 +159,7 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
       console.log(`u/${user.name}: ${action} on ${comment.id} (comments=${data.comment_ids.length}, ` +
                   `removed=${data.removed_comment_ids.length}, score=${data.score})`);
     } else {
-      console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, not tracked as removed`);
+      console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, not tracked as removed comment`);
     }
   }
 }
