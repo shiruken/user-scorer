@@ -153,17 +153,6 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
                     `(removed=${data.removed_comment_ids.length})`);
       }
 
-      if (event.moderator && event.moderator.name == "AutoModerator") {
-        data.automod_comment_ids.push(comment.id); // Track comment
-
-        // Purge old AutoMod removed comments to adhere to tracking limit
-        while (data.automod_comment_ids.length > MAX_ITEMS) {
-          const comment_old = data.automod_comment_ids.shift();
-          console.log(`u/${user.name}: Purged old AutoMod removed comment ${comment_old} from tracking ` +
-                      `(automod=${data.automod_comment_ids.length})`);
-        }
-      }
-
       data.score = calculateScore(data, settings.numComments);
       data.numComments_for_score = settings.numComments;
       await storeRemovedComments(data, context.redis);

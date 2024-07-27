@@ -16,7 +16,6 @@ async function initUserData(user: UserV2, redis: RedisClient): Promise<Record<st
     ['name']: user.name,
     ['comment_ids']: "[]",
     ['removed_comment_ids']: "[]",
-    ['automod_comment_ids']: "[]",
     ['score']: "0",
     ['numComments_for_score']: "0",
   });
@@ -59,7 +58,6 @@ export async function getUserData(user: UserV2, redis: RedisClient): Promise<Use
     name: hash.name,
     comment_ids: JSON.parse(hash.comment_ids),
     removed_comment_ids: JSON.parse(hash.removed_comment_ids),
-    automod_comment_ids: JSON.parse(hash.automod_comment_ids),
     score: Number(hash.score),
     numComments_for_score: Number(hash.numComments_for_score),
   };
@@ -93,7 +91,6 @@ export async function storeRemovedComments(data: UserData, redis: RedisClient) {
   // Update removed comments and score in user hash
   await redis.hset(data.name, {
     ['removed_comment_ids']: JSON.stringify(data.removed_comment_ids),
-    ['automod_comment_ids']: JSON.stringify(data.automod_comment_ids),
     ['score']: JSON.stringify(data.score),
     ['numComments_for_score']: JSON.stringify(data.numComments_for_score),
   });

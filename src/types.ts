@@ -26,8 +26,6 @@ export type UserData = {
   comment_ids: string[];
   /** List of removed Reddit comment IDs (t1_*) */
   removed_comment_ids: string[];
-  /** List of comment IDs actioned by AutoModerator (t1_*) */
-  automod_comment_ids: string[];
   /** Current User Score */
   score: number;
   /** numComments app setting when the current User Score was calculated*/
