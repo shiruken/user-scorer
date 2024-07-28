@@ -1,5 +1,5 @@
 import { Devvit } from '@devvit/public-api';
-import { onCommentSubmit, onModAction } from './handlers.js';
+import { onCommentSubmit, showUserScore, onModAction } from './handlers.js';
 import { getAppSettings, settings } from './settings.js';
 
 Devvit.configure({
@@ -19,6 +19,14 @@ Devvit.addTrigger({
 Devvit.addTrigger({
   event: 'ModAction',
   onEvent: onModAction,
+});
+
+// Show current User Score for target author
+Devvit.addMenuItem({
+  label: 'Get User Score',
+  location: 'comment',
+  forUserType: 'moderator',
+  onPress: showUserScore,
 });
 
 Devvit.addMenuItem({

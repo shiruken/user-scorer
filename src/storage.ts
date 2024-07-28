@@ -5,7 +5,7 @@ import { UserData } from "./types.js";
 /**
  * Initializes Redis storage for user
  * @param username A Reddit username
- * @param username A Reddit user thing ID (t2_*)
+ * @param id A Reddit user thing ID (t2_*)
  * @param redis A RedisClient object
  * @returns A Promise that resolves to a {@link UserData} object
  */

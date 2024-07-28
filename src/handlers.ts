@@ -42,7 +42,7 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
   if (settings.reportComments || settings.removeComments) {
     if (data.comment_ids.length >= MIN_NUM_COMMENTS) {
 
-      // Recalculate score if app settings were changed since last score
+      // Recalculate score if app settings were changed since last scoring
       if (settings.numComments != data.numComments_for_score) {
         data.score = calculateScore(data, settings.numComments);
         console.log(`u/${user.name}: Recalculated score on settings change (score=${data.score})`);
@@ -168,4 +168,44 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
       console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, not tracked as removed comment`);
     }
   }
+}
+
+/**
+ * Show current User Score for target author
+ * @param _event A MenuItemOnPressEvent object
+ * @param context A Context object
+ */
+export async function showUserScore(event: MenuItemOnPressEvent, context: Context) {
+  if (!event.targetId || !event.targetId.startsWith("t1_")) {
+    throw new Error("Improper `event.targetId` in showUserScore");
+  }
+
+  const mod = await context.reddit.getCurrentUser();
+
+  const comment = await context.reddit.getCommentById(event.targetId);
+  const username = comment.authorName;
+
+  const data = await getUserData(username, context.redis);
+
+  if (!data || data.comment_ids.length < MIN_NUM_COMMENTS) {
+    context.ui.showToast("User Score not yet assigned");
+    console.log(`u/${mod!.username} requested u/${username} (Not yet tracked or insufficient history)`);
+    return;
+  }
+
+  // Recalculate score if app settings were changed since last scoring
+  const settings = await getAppSettings(context.settings);
+  if (settings.numComments != data.numComments_for_score) {
+    data.score = calculateScore(data, settings.numComments);
+  }
+
+  const score_fmt = data.score.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  const num_recent_comments = Math.min(data.comment_ids.length, settings.numComments);
+  const num_recent_removed = num_recent_comments * data.score;
+
+  context.ui.showToast(
+    `User Score: ${score_fmt} (${num_recent_removed} of ` +
+    `${num_recent_comments} recent comments removed)`
+  );
+  console.log(`u/${mod!.username} requested u/${username} (score=${score_fmt})`);
 }
