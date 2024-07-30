@@ -6,9 +6,8 @@ export const settings: SettingsFormField[] = [
   {
     type: "number",
     name: "numComments",
-    label: "Number of Comments",
-    helpText: `How many recent comments to consider when calculating User Score ` +
-              `(Minimum: ${MIN_NUM_COMMENTS}, Maximum: ${MAX_ITEMS})`,
+    label: `Number of Comments [${MIN_NUM_COMMENTS}-${MAX_ITEMS}]`,
+    helpText: "The number of recent comments by a user to consider when calculating their User Score",
     defaultValue: 10,
     onValidate: validateNumComments,
   },
