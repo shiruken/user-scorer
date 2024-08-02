@@ -20,7 +20,7 @@ This app operates under the premise that frequently-actioned users are likely to
 
 The User Score metric ranges in value between 0 and 1 (inclusive). A User Score of `0.0` indicates that *no* recent comments by the user have been removed (i.e. a "good" user). A User Score of `1.0` indicates that *all* recent comments by the user have been removed (i.e. a "bad" user). The app installation settings let moderators enable automatic reporting and removal of comments based on User Score and the thresholds at which these actions occur.
 
-[Number line ranging between 0 and 1. Show both report and remove thresholds. Arrows indicating "good" and "bad" scores.]
+![User Score Line Diagram](https://github.com/user-attachments/assets/1ea3bffa-2aef-447f-a764-29890c30f25e)
 
 ## Installation Settings
 
