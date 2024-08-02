@@ -24,7 +24,7 @@ The User Score metric ranges in value between 0 and 1 (inclusive). A User Score 
 
 ## Installation Settings
 
-[Screenshot of Installation Settings]
+![Screenshot of Installation Settings](https://github.com/user-attachments/assets/6fcde204-f1a6-4353-8564-1e6001d59dbb)
 
 * **Number of Comments**: The maximum number of recent comments by a user to consider when calculating their User Score
   * Minimum: 5 (User Scores are not assigned until at least five comments have been tracked)
