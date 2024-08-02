@@ -16,7 +16,7 @@ Automatically report or remove new comments from users based on their User Score
 
 This app operates under the premise that frequently-actioned users are likely to have their future content removed. To quantify this dynamic, a user's recent comment history in the subreddit is used to assign a "User Score." This metric is determined by taking the last `N` comments from the user in the subreddit, identifying how many of those comments have been removed (`R`), and calculating the fraction of comments that were removed (`R/N`) as the User Score. Because an established comment history is necessary for this calculation, User Scores are not assigned until at least five comments have been tracked.
 
-[Figure showing the calculation]
+![User Score Equation](https://github.com/user-attachments/assets/0664c452-7a97-4b9a-b6b5-350b124d1675)
 
 The User Score metric ranges in value between 0 and 1 (inclusive). A User Score of `0.0` indicates that *no* recent comments by the user have been removed (i.e. a "good" user). A User Score of `1.0` indicates that *all* recent comments by the user have been removed (i.e. a "bad" user). The app installation settings let moderators enable automatic reporting and removal of comments based on User Score and the thresholds at which these actions occur.
 
