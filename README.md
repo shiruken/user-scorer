@@ -1,13 +1,13 @@
 # User Scorer
 
-Automatically report or remove new comments from users based on their User Score, a metric quantifying their recent history in your subreddit.
+Automatically report or remove comments from users based on their User Score, a metric quantifying their recent history in your subreddit.
 
 [https://developers.reddit.com/apps/user-scorer](https://developers.reddit.com/apps/user-scorer)
 
 ## Features
 
 * Minimal setup requiring *zero* knowledge about AutoModerator or coding
-* *Automatically* action new comments from users based on their recent history in your subreddit (i.e. their [User Score](#user-score))
+* *Automatically* action (report and/or remove) comments from users based on their recent history in your subreddit (i.e. their [User Score](#user-score))
 * Moderator actions *directly impact* User Score
 
 ## User Score
