@@ -46,9 +46,13 @@ The User Score metric ranges in value between 0 and 1 (inclusive). A User Score 
 * Enable Comment Reporting with a Report Threshold of `0` to get reports on *all* new comments (from users with assigned User Scores).
 * The app will still track new comments and calculate User Scores even if both Comment Reporting and Comment Removal are disabled.
 
-## Screenshots
+## Menu Actions
 
-[Screenshot of 'Get User Score' Menu Action]
+### Get User Score
+
+This action appears under the moderator menu on comments in the subreddit. It will display the current User Score for the comment's author, if it has been assigned.
+
+![Screenshot of 'Get User Score' Menu Action](https://github.com/user-attachments/assets/d03994e0-4330-489b-b827-fcce742afbb2) ![Screenshot of 'Get User Score' Toasts](https://github.com/user-attachments/assets/c8e5bde1-bf23-41c6-ae0a-4074252133a4)
 
 ## Limitations
 
