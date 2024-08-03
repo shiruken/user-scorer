@@ -61,7 +61,7 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
               reason: `Bad User Score (${score_fmt}: ${num_recent_removed} ` +
                       `of ${num_recent_comments} recent comments removed)`,
             })
-            .then(() => console.log(`u/${user.name}: Reported ${commentAPI.id} (score=${data!.score})`) )
+            .then(() => console.info(`u/${user.name}: Reported ${commentAPI.id} (score=${data!.score})`) )
             .catch((e) => console.error(`u/${user.name}: Error reporting ${commentAPI.id}`, e));
         }
 
@@ -70,7 +70,7 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
           if (!commentAPI.removed || !commentAPI.spam) {
             await commentAPI
               .remove()
-              .then(() => console.log(`u/${user.name}: Removed ${commentAPI.id} (score=${data!.score})`) )
+              .then(() => console.info(`u/${user.name}: Removed ${commentAPI.id} (score=${data!.score})`) )
               .catch((e) => console.error(`u/${user.name}: Error removing ${commentAPI.id}`, e));
           } else {
             console.log(`u/${user.name}: ${commentAPI.id} is already removed, skipping`);
@@ -90,8 +90,8 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
   data.score = calculateScore(data, settings.numComments);
   data.numComments_for_score = settings.numComments;
   await storeComments(data, context.redis);
-  console.log(`u/${user.name}: Added ${comment.id} (comments=${data.comment_ids.length}, ` +
-              `removed=${data.removed_comment_ids.length}, score=${data.score})`);
+  console.info(`u/${user.name}: Added ${comment.id} (comments=${data.comment_ids.length}, ` +
+               `removed=${data.removed_comment_ids.length}, score=${data.score})`);
 }
 
 /**
@@ -137,7 +137,7 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
   }
 
   if (!(data.comment_ids.includes(comment.id))) {
-    console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, missing from tracked comments`);
+    console.error(`u/${user.name}: Skipped ${action} on ${comment.id}, missing from tracked comments`);
     return;
   }
 
@@ -150,8 +150,8 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
       data.score = calculateScore(data, settings.numComments);
       data.numComments_for_score = settings.numComments;
       await storeRemovedComments(data, context.redis);
-      console.log(`u/${user.name}: ${action} on ${comment.id} (comments=${data.comment_ids.length}, ` +
-                  `removed=${data.removed_comment_ids.length}, score=${data.score})`);
+      console.info(`u/${user.name}: ${action} on ${comment.id} (comments=${data.comment_ids.length}, ` +
+                   `removed=${data.removed_comment_ids.length}, score=${data.score})`);
     } else {
       console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, already tracked in removed comments`);
     }
@@ -164,8 +164,8 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
       data.score = calculateScore(data, settings.numComments);
       data.numComments_for_score = settings.numComments;
       await storeRemovedComments(data, context.redis);
-      console.log(`u/${user.name}: ${action} on ${comment.id} (comments=${data.comment_ids.length}, ` +
-                  `removed=${data.removed_comment_ids.length}, score=${data.score})`);
+      console.info(`u/${user.name}: ${action} on ${comment.id} (comments=${data.comment_ids.length}, ` +
+                   `removed=${data.removed_comment_ids.length}, score=${data.score})`);
     } else {
       console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, not tracked as removed comment`);
     }
@@ -191,7 +191,7 @@ export async function showUserScore(event: MenuItemOnPressEvent, context: Contex
 
   if (!data || data.comment_ids.length < MIN_NUM_COMMENTS) {
     context.ui.showToast("User Score not yet assigned");
-    console.log(`u/${mod!.username} requested u/${username} (Not yet tracked or insufficient history)`);
+    console.info(`u/${mod!.username} requested u/${username} (Not yet tracked or insufficient history)`);
     return;
   }
 
@@ -209,5 +209,5 @@ export async function showUserScore(event: MenuItemOnPressEvent, context: Contex
     `User Score: ${score_fmt} (${num_recent_removed} of ` +
     `${num_recent_comments} recent comments removed)`
   );
-  console.log(`u/${mod!.username} requested u/${username} (score=${score_fmt})`);
+  console.info(`u/${mod!.username} requested u/${username} (score=${score_fmt})`);
 }
