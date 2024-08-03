@@ -127,11 +127,13 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
 
   let data = await getUserData(user.name, context.redis);
   if (!data) {
-    data = await initUserData(user.name, user.id, context.redis);
+    console.error(`u/${user.name}: Skipped ${action} on ${comment.id}, user not tracked`);
+    return;
   }
 
   if (data.comment_ids.length === 0) {
-    throw new Error(`u/${user.name}: No comments tracked`);
+    console.error(`u/${user.name}: Skipped ${action} on ${comment.id}, no comments tracked`);
+    return;
   }
 
   if (!(data.comment_ids.includes(comment.id))) {
