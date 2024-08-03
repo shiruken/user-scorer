@@ -1,8 +1,6 @@
 # User Scorer
 
-Automatically report or remove new comments from users based on their recent history in your subreddit.
-
-Automatically report or remove new comments from users based on their User Score, a metric quantifiying their recent history in your subreddit.
+Automatically report or remove new comments from users based on their User Score, a metric quantifying their recent history in your subreddit.
 
 [https://developers.reddit.com/apps/user-scorer](https://developers.reddit.com/apps/user-scorer)
 
@@ -54,9 +52,9 @@ The User Score metric ranges in value between 0 and 1 (inclusive). A User Score 
 
 ## Limitations
 
-* The app currently relies upon the tracking of *new* comments to establish a user's comment history. This means it is naive to any comments made *prior* to the installation of the app and that it will take some time to gather the minimum number of comments (5) necessary to assign a User Score.
+* The app currently relies upon the *tracking* of comments to establish a user's comment history. This means it is naive to any comments made *prior* to the installation of the app and that it will take some time to gather the minimum number of comments (5) necessary to assign a User Score.
 * Uninstalling the app will delete all its data. This includes all tracked users and their respective comment histories. There is currently no way to backup (or restore) this data, so be careful when uninstalling.
-* The app can currently only report and/or remove comments. Filtering content directly to the Mod Queue is exclusive to AutoModerator.
+* The app can currently only report and/or remove comments. Filtering content directly to the Mod Queue is a feature exclusive to AutoModerator.
 
 ## Links
 
