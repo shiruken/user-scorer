@@ -9,6 +9,11 @@ export const MAX_ITEMS: number = 1000;
 export const MIN_NUM_COMMENTS: number = 5;
 
 /**
+ * Placeholder value for unassigned User Scores
+ */
+export const SCORE_PLACEHOLDER: number = -1;
+
+/**
  * Key for Redis Sorted Set of all tracked users
  */
 export const USERS_KEY = "#users";

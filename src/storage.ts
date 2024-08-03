@@ -1,5 +1,5 @@
 import { RedisClient } from "@devvit/public-api";
-import { MAX_ITEMS, USERS_KEY } from "./constants.js";
+import { MAX_ITEMS, SCORE_PLACEHOLDER, USERS_KEY } from "./constants.js";
 import { UserData } from "./types.js";
 
 /**
@@ -16,12 +16,12 @@ export async function initUserData(username: string, id: string, redis: RedisCli
     ['name']: username,
     ['comment_ids']: "[]",
     ['removed_comment_ids']: "[]",
-    ['score']: "0",
+    ['score']: `${SCORE_PLACEHOLDER}`,
     ['numComments_for_score']: "0",
   });
 
   // Add to sorted set of all users
-  await redis.zAdd(USERS_KEY, { member: username, score: 0 });
+  await redis.zAdd(USERS_KEY, { member: username, score: SCORE_PLACEHOLDER });
 
   const data = await getUserData(username, redis);
   if (!data) {
