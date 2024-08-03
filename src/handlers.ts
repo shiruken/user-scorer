@@ -61,7 +61,7 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
               reason: `Bad User Score (${score_fmt}: ${num_recent_removed} ` +
                       `of ${num_recent_comments} recent comments removed)`,
             })
-            .then(() => console.log(`u/${user.name}: Reported ${commentAPI.id} (score=${data.score})`) )
+            .then(() => console.log(`u/${user.name}: Reported ${commentAPI.id} (score=${data!.score})`) )
             .catch((e) => console.error(`u/${user.name}: Error reporting ${commentAPI.id}`, e));
         }
 
@@ -70,7 +70,7 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
           if (!commentAPI.removed || !commentAPI.spam) {
             await commentAPI
               .remove()
-              .then(() => console.log(`u/${user.name}: Removed ${commentAPI.id} (score=${data.score})`) )
+              .then(() => console.log(`u/${user.name}: Removed ${commentAPI.id} (score=${data!.score})`) )
               .catch((e) => console.error(`u/${user.name}: Error removing ${commentAPI.id}`, e));
           } else {
             console.log(`u/${user.name}: ${commentAPI.id} is already removed, skipping`);
