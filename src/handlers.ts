@@ -157,7 +157,7 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
     }
   }
   
-  if (action == "approvecomment" && data.removed_comment_ids.includes(comment.id)) {
+  if (action == "approvecomment") {
     if (data.removed_comment_ids.includes(comment.id)) {
       const index = data.removed_comment_ids.indexOf(comment.id);
       data.removed_comment_ids.splice(index, 1); // Stop tracking comment
