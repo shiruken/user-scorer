@@ -120,8 +120,12 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
     throw new Error('Missing `user` in onModAction');
   }
 
-  // Ignore actions targeting AutoModerator or subreddit mod team account
-  if (user.name == "AutoModerator" || (user.name == `${event.subreddit!.name}-ModTeam`)) {
+  // Ignore actions targeting AutoModerator, subreddit mod team accounts, or deleted accounts
+  if (
+    user.name == "AutoModerator" ||
+    user.name == `${event.subreddit!.name}-ModTeam` ||
+    user.name == "[deleted]"
+  ) {
     return;
   }
 
