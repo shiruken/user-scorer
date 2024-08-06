@@ -4,6 +4,7 @@ import { MIN_NUM_COMMENTS } from "./constants.js";
 import { calculateScore } from "./scorer.js";
 import { getAppSettings } from "./settings.js";
 import { getUserData, initUserData, storeComments, storeRemovedComments, trimArray } from "./storage.js";
+import { UserData } from "./types.js";
 
 /**
  * Track and action new comments
@@ -135,43 +136,59 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
     return;
   }
 
-  if (data.comment_ids.length === 0) {
-    console.error(`u/${user.name}: Skipped ${action} on ${comment.id}, no comments tracked`);
+  await processModAction(data, action, user.name, comment.id, context);
+}
+
+async function processModAction(
+  data: UserData,
+  action: string,
+  username: string,
+  comment_id: string,
+  context: TriggerContext
+) {
+
+  if (!data) {
+    console.error(`u/${username}: Skipped ${action} on ${comment_id}, user not tracked`);
     return;
   }
 
-  if (!(data.comment_ids.includes(comment.id))) {
-    console.error(`u/${user.name}: Skipped ${action} on ${comment.id}, missing from tracked comments`);
+  if (data.comment_ids.length === 0) {
+    console.error(`u/${username}: Skipped ${action} on ${comment_id}, no comments tracked`);
+    return;
+  }
+
+  if (!(data.comment_ids.includes(comment_id))) {
+    console.error(`u/${username}: Skipped ${action} on ${comment_id}, missing from tracked comments`);
     return;
   }
 
   const settings = await getAppSettings(context.settings);
 
   if (action == "removecomment" || action == "spamcomment") {
-    if (!data.removed_comment_ids.includes(comment.id)) {
-      data.removed_comment_ids.push(comment.id); // Track comment
+    if (!data.removed_comment_ids.includes(comment_id)) {
+      data.removed_comment_ids.push(comment_id); // Track comment
       data.removed_comment_ids = trimArray(data.removed_comment_ids);
       data.score = calculateScore(data, settings.numComments);
       data.numComments_for_score = settings.numComments;
       await storeRemovedComments(data, context.redis);
-      console.info(`u/${user.name}: ${action} on ${comment.id} (comments=${data.comment_ids.length}, ` +
+      console.info(`u/${username}: ${action} on ${comment_id} (comments=${data.comment_ids.length}, ` +
                    `removed=${data.removed_comment_ids.length}, score=${data.score})`);
     } else {
-      console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, already tracked in removed comments`);
+      console.log(`u/${username}: Skipped ${action} on ${comment_id}, already tracked in removed comments`);
     }
   }
   
   if (action == "approvecomment") {
-    if (data.removed_comment_ids.includes(comment.id)) {
-      const index = data.removed_comment_ids.indexOf(comment.id);
+    if (data.removed_comment_ids.includes(comment_id)) {
+      const index = data.removed_comment_ids.indexOf(comment_id);
       data.removed_comment_ids.splice(index, 1); // Stop tracking comment
       data.score = calculateScore(data, settings.numComments);
       data.numComments_for_score = settings.numComments;
       await storeRemovedComments(data, context.redis);
-      console.info(`u/${user.name}: ${action} on ${comment.id} (comments=${data.comment_ids.length}, ` +
+      console.info(`u/${username}: ${action} on ${comment_id} (comments=${data.comment_ids.length}, ` +
                    `removed=${data.removed_comment_ids.length}, score=${data.score})`);
     } else {
-      console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, not tracked as removed comment`);
+      console.log(`u/${username}: Skipped ${action} on ${comment_id}, not tracked as removed comment`);
     }
   }
 }
