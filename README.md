@@ -7,7 +7,7 @@ Automatically report or remove comments from users based on their User Score, a 
 ## Features
 
 * Minimal setup requiring *zero* knowledge about AutoModerator or coding
-* *Automatically* action (report and/or remove) comments from users based on their recent history in your subreddit (i.e. their [User Score](#user-score))
+* *Automatically* action comments from users based on their recent history in your subreddit (i.e. their [User Score](#user-score))
 * Moderator actions *directly impact* User Score
 
 ## User Score
@@ -43,8 +43,8 @@ The User Score metric ranges in value between 0 and 1 (inclusive). A User Score 
 ### Tips
 
 * Start with *only* Comment Reporting enabled in order to learn what thresholds are appropriate for your subreddit.
-* Enable Comment Reporting with a Report Threshold of `0` to get reports on *all* new comments (from users with assigned User Scores).
-* The app will still track new comments and calculate User Scores even if both Comment Reporting and Comment Removal are disabled.
+* Use a Report Threshold of `0` to get reports on *all* new comments (from users with assigned User Scores).
+* Comments will still be tracked even if both Comment Reporting and Comment Removal are disabled.
 
 ## Menu Actions
 
