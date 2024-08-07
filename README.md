@@ -12,7 +12,7 @@ Automatically report or remove comments from users based on their User Score, a 
 
 ## User Score
 
-This app operates under the premise that frequently-actioned users are likely to have their future content removed. To quantify this dynamic, a user's recent comment history in the subreddit is used to assign a "User Score." This metric is determined by taking the last `N` comments from the user in the subreddit, identifying how many of those comments have been removed (`R`), and calculating the fraction of comments that were removed (`R/N`) as the User Score. Because an established comment history is necessary for this calculation, User Scores are not assigned until at least five comments have been tracked.
+This app operates under the premise that frequently-actioned users are likely to have their future content removed. To quantify this dynamic, a user's recent comment history in the subreddit is used to assign a "User Score." This metric is determined by taking the last `N` comments from the user in the subreddit, identifying how many of those comments have been removed (`R`), and calculating the fraction of comments that were removed (`R/N`) as the User Score. Because an established comment history is necessary for this calculation, User Scores are not assigned until at least five comments have been tracked. Deleted comments *are* accounted for in this calculation, so users cannot purge their comments to avoid accountability.
 
 ![User Score Equation](https://github.com/user-attachments/assets/0664c452-7a97-4b9a-b6b5-350b124d1675)
 
