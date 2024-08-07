@@ -132,10 +132,11 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
 
   let data = await getUserData(user.name, context.redis);
 
-  // If user data doesn't exist, then delay processing the mod action to allow 
-  // for initial comment tracking to complete. This helps address the race
-  // condition that exists between the CommentSubmit and ModAction triggers.
-  if (!data) {
+  // If user data doesn't exist or the comment is missing from tracked
+  // comments, then delay processing the mod action to allow for comment
+  // tracking to complete. This helps address the race condition that 
+  // exists between the CommentSubmit and ModAction triggers.
+  if (!data || !(data.comment_ids.includes(comment.id))) {
     const moderator = event.moderator;
     if (!moderator) {
       throw new Error(`Missing \`moderator\` in onModAction, unable to delay ` +
@@ -144,10 +145,10 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
 
     if (moderator.name == "AutoModerator" || moderator.name == "reddit") {
       const now = new Date();
-      const delayed = new Date(now.getTime() + DELAY_MODACTION_BY * 1000);
+      const delay = new Date(now.getTime() + DELAY_MODACTION_BY * 1000);
       await context.scheduler.runJob({
         name: "delayedModAction",
-        runAt: delayed,
+        runAt: delay,
         data: {
           action: action,
           username: user.name,
@@ -158,7 +159,7 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
                   `by ${moderator.name} on ${comment.id}`);
     } else {
       console.error(`u/${user.name}: Skipped ${action} on ${comment.id} ` +
-                    `by ${moderator.name}, user not tracked`);
+                    `by ${moderator.name}, user or comment not tracked`);
     }
     return;
   }
@@ -169,9 +170,9 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
 /**
  * Process mod action to track comment removal status
  * @param data A {@link UserData} object
- * @param action A ModAction action
+ * @param action A ModAction action (removecomment, spamcomment, or approvecomment)
  * @param username A user name
- * @param comment_id A comment id
+ * @param comment_id A comment id (t1_*)
  * @param context A TriggerContext object
  */
 async function processModAction(
@@ -183,8 +184,8 @@ async function processModAction(
 ) {
 
   // `data` is only undefined when called by the `delayedModAction` Scheduler job.
-  // Try loading the user data again to see if the associated CommentSubmit trigger
-  // has been processed. If `data` remains undefined then the user is not tracked.
+  // Try loading the user data again to see if a related CommentSubmit trigger has
+  // been processed. If `data` remains undefined, then the user is not tracked.
   // This can occur if the mod action targeted an older comment that was created
   // prior to installation of this app.
   if (!data) {
@@ -240,7 +241,7 @@ async function processModAction(
 /**
  * Relay Scheduler job for delayed mod action processing
  * @param event A ScheduledJobEvent object
- * @param context A Context object
+ * @param context A Context object (unable to type properly for ScheduledJobHandler)
  */
 export async function onDelayedModAction(event: ScheduledJobEvent, context: any) {
   const data = event.data;
