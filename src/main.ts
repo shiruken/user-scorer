@@ -29,6 +29,12 @@ Devvit.addMenuItem({
   onPress: showUserScore,
 });
 
+// Delayed ModAction processing for tracking comment removal status
+Devvit.addSchedulerJob({
+  name: "delayedModAction",
+  onRun: onDelayedModAction,
+});
+
 // Devvit.addMenuItem({
 //   label: 'Clear User Score for u/shiruken',
 //   location: 'subreddit',
@@ -51,11 +57,5 @@ Devvit.addMenuItem({
 //     console.log(`\nu/shiruken: ${JSON.stringify(user, null, 2)}`);
 //   },
 // });
-// Delayed ModAction processing for tracking comment removal status
-Devvit.addSchedulerJob({
-  name: "delayedModAction",
-  onRun: onDelayedModAction,
-});
-
 
 export default Devvit;
