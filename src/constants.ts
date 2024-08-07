@@ -17,3 +17,8 @@ export const SCORE_PLACEHOLDER: number = -1;
  * Key for Redis Sorted Set of all tracked users
  */
 export const USERS_KEY = "#users";
+
+/**
+ * Amount of time (in seconds) to delay processing automated ModActions
+ */
+export const DELAY_MODACTION_BY = 5;

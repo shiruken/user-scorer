@@ -1,5 +1,5 @@
 import { Devvit } from '@devvit/public-api';
-import { onCommentSubmit, showUserScore, onModAction } from './handlers.js';
+import { onCommentSubmit, showUserScore, onModAction, onDelayedModAction } from './handlers.js';
 import { settings } from './settings.js';
 
 Devvit.configure({
@@ -51,5 +51,11 @@ Devvit.addMenuItem({
 //     console.log(`\nu/shiruken: ${JSON.stringify(user, null, 2)}`);
 //   },
 // });
+// Delayed ModAction processing for tracking comment removal status
+Devvit.addSchedulerJob({
+  name: "delayedModAction",
+  onRun: onDelayedModAction,
+});
+
 
 export default Devvit;

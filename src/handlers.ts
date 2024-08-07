@@ -1,6 +1,6 @@
-import { Context, MenuItemOnPressEvent, TriggerContext } from "@devvit/public-api";
+import { Context, MenuItemOnPressEvent, ScheduledJobEvent, TriggerContext } from "@devvit/public-api";
 import { CommentSubmit, ModAction } from '@devvit/protos';
-import { MIN_NUM_COMMENTS } from "./constants.js";
+import { DELAY_MODACTION_BY, MIN_NUM_COMMENTS } from "./constants.js";
 import { calculateScore } from "./scorer.js";
 import { getAppSettings } from "./settings.js";
 import { getUserData, initUserData, storeComments, storeRemovedComments, trimArray } from "./storage.js";
@@ -96,7 +96,7 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
 }
 
 /**
- * Track comment removal status
+ * Check mod action for tracking comment removal status
  * @param event A ModAction trigger object
  * @param context A TriggerContext object
  */
@@ -131,25 +131,69 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
   }
 
   let data = await getUserData(user.name, context.redis);
+
+  // If user data doesn't exist, then delay processing the mod action to allow 
+  // for initial comment tracking to complete. This helps address the race
+  // condition that exists between the CommentSubmit and ModAction triggers.
   if (!data) {
-    console.error(`u/${user.name}: Skipped ${action} on ${comment.id}, user not tracked`);
+    const moderator = event.moderator;
+    if (!moderator) {
+      throw new Error(`Missing \`moderator\` in onModAction, unable to delay ` +
+                      `processing of ${action} on ${comment.id}`);
+    }
+
+    if (moderator.name == "AutoModerator" || moderator.name == "reddit") {
+      const now = new Date();
+      const delayed = new Date(now.getTime() + DELAY_MODACTION_BY * 1000);
+      await context.scheduler.runJob({
+        name: "delayedModAction",
+        runAt: delayed,
+        data: {
+          action: action,
+          username: user.name,
+          comment_id: comment.id,
+        },
+      });
+      console.log(`u/${user.name}: Delaying processing of ${action} ` +
+                  `by ${moderator.name} on ${comment.id}`);
+    } else {
+      console.error(`u/${user.name}: Skipped ${action} on ${comment.id} ` +
+                    `by ${moderator.name}, user not tracked`);
+    }
     return;
   }
 
   await processModAction(data, action, user.name, comment.id, context);
 }
 
+/**
+ * Process mod action to track comment removal status
+ * @param data A {@link UserData} object
+ * @param action A ModAction action
+ * @param username A user name
+ * @param comment_id A comment id
+ * @param context A TriggerContext object
+ */
 async function processModAction(
-  data: UserData,
+  data: UserData | undefined,
   action: string,
   username: string,
   comment_id: string,
   context: TriggerContext
 ) {
 
+  // `data` is only undefined when called by the `delayedModAction` Scheduler job.
+  // Try loading the user data again to see if the associated CommentSubmit trigger
+  // has been processed. If `data` remains undefined then the user is not tracked.
+  // This can occur if the mod action targeted an older comment that was created
+  // prior to installation of this app.
   if (!data) {
-    console.error(`u/${username}: Skipped ${action} on ${comment_id}, user not tracked`);
-    return;
+    data = await getUserData(username, context.redis);
+    if (!data) {
+      console.error(`u/${username}: Skipped ${action} on ${comment_id}, ` +
+                    `user not tracked after delayed processing`);
+      return;
+    }
   }
 
   if (data.comment_ids.length === 0) {
@@ -191,6 +235,25 @@ async function processModAction(
       console.log(`u/${username}: Skipped ${action} on ${comment_id}, not tracked as removed comment`);
     }
   }
+}
+
+/**
+ * Relay Scheduler job for delayed mod action processing
+ * @param event A ScheduledJobEvent object
+ * @param context A Context object
+ */
+export async function onDelayedModAction(event: ScheduledJobEvent, context: any) {
+  const data = event.data;
+  if (!data) {
+    throw new Error('Missing `data` in onDelayedModAction');
+  }
+
+  if (!(data.action && data.username && data.comment_id)) {
+    throw new Error('Improper `data` in onDelayedModAction');
+  }
+
+  console.log(`u/${data.username}: Beginning delayed processing of ${data.action} on ${data.comment_id}`);
+  await processModAction(undefined, data.action, data.username, data.comment_id, context);
 }
 
 /**
