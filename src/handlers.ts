@@ -274,9 +274,18 @@ export async function showUserScore(event: MenuItemOnPressEvent, context: Contex
 
   const data = await getUserData(username, context.redis);
 
-  if (!data || data.comment_ids.length < MIN_NUM_COMMENTS) {
-    context.ui.showToast("User Score not yet assigned");
-    console.info(`u/${mod!.username} requested u/${username} (Not yet tracked or insufficient history)`);
+  if (!data || data.comment_ids.length == 0) {
+    context.ui.showToast("User Score not yet assigned (No tracked comments)");
+    console.info(`u/${mod!.username} requested u/${username} (No tracked comments)`);
+    return;
+  }
+
+  if (data.comment_ids.length < MIN_NUM_COMMENTS) {
+    context.ui.showToast(`User Score not yet assigned (Only ${data.comment_ids.length} ` +
+                         `tracked comment${data.comment_ids.length > 1 ? 's' : ''})`);
+    console.info(`u/${mod!.username} requested u/${username} (Insufficient history, ` +
+                 `only ${data.comment_ids.length} tracked comment` +
+                 `${data.comment_ids.length > 1 ? 's' : ''})`);
     return;
   }
 
