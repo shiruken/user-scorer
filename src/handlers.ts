@@ -293,6 +293,7 @@ export async function showUserScore(event: MenuItemOnPressEvent, context: Contex
   const settings = await getAppSettings(context.settings);
   if (settings.numComments != data.numComments_for_score) {
     data.score = calculateScore(data, settings.numComments);
+    console.log(`u/${username}: Recalculated score on settings change (score=${data.score})`);
   }
 
   const score_fmt = data.score.toLocaleString("en-US", { maximumFractionDigits: 2 });
