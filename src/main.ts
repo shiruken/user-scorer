@@ -72,7 +72,7 @@ Devvit.addMenuItem({
   location: 'subreddit',
   forUserType: 'moderator',
   onPress: async(_event, context) => {
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 10000; i++) {
       await context.redis.zAdd("#users", { member: `TestUser_${i}`, score: Math.random() });
     }
     console.log(`Added test users`);
@@ -84,7 +84,7 @@ Devvit.addMenuItem({
   location: 'subreddit',
   forUserType: 'moderator',
   onPress: async(_event, context) => {
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 10000; i++) {
       await context.redis.zRem("#users", [`TestUser_${i}`]);
     }
     console.log(`Removed test users`);

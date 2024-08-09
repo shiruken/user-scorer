@@ -50,4 +50,6 @@ export type Histogram = {
     /** Frequency count of the bin */
     count: number,
   }[],
+  /** Flag indicating whether the full data was processed */
+  is_complete: boolean,
 }

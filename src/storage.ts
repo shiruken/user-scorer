@@ -139,6 +139,7 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
       { range: [0.9, 0.999], label: "0.9 < x < 1.0", count: 0 }, // 0.999 is max value possible with limit
       { range: [1.0],        label: "      x = 1.0", count: 0 },
     ],
+    is_complete: true,
   }
 
   // Get all user scores and calculate histogram
@@ -162,6 +163,7 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
 
   const count = await redis.zCard(USERS_KEY);
   if (count != histogram.count) {
+    histogram.is_complete = false;
     console.error(`Mismatch between sorted set cardinality (${count}) ` +
                   `and number of items processed (${histogram.count})`);
   }
@@ -169,7 +171,9 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
   // Log summary to console
   let txt = `\n\n` +
     `User Scorer Report\n` +
-    `Tracked Users: ${histogram.count}\n` +
+    `Tracked Users: ${histogram.count}${
+      histogram.is_complete ? "" : " (Warning! Failed to process all users)"
+    }\n` +
     `Scored Users: ${histogram.count - histogram.bins[0].count}\n` +
     `Unscored Users: ${histogram.bins[0].count}\n` +
     `-----------------\n`;
