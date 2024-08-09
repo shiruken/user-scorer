@@ -31,3 +31,23 @@ export type UserData = {
   /** numComments app setting when the current User Score was calculated*/
   numComments_for_score: number,
 };
+
+/**
+ * Structure for histogram data
+ */
+export type Histogram = {
+  /** Total number of users tracked by User Scorer */
+  count: number,
+  /** Array of histogram bins */
+  bins: {
+    /** 
+     * Array defining the lower (exclusive) and upper (inclusive) bounds of the bin.
+     * A single element array defines a single-value bin
+    */
+    range: number[],
+    /** Formatted bin label for printing */
+    label: string,
+    /** Frequency count of the bin */
+    count: number,
+  }[],
+}

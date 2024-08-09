@@ -1,5 +1,5 @@
 import { Devvit } from '@devvit/public-api';
-import { onCommentSubmit, showUserScore, onModAction, onDelayedModAction } from './handlers.js';
+import { generateReport, onCommentSubmit, onModAction, onDelayedModAction, showUserScore } from './handlers.js';
 import { settings } from './settings.js';
 
 Devvit.configure({
@@ -21,6 +21,12 @@ Devvit.addTrigger({
   onEvent: onModAction,
 });
 
+// Delayed ModAction processing for tracking comment removal status
+Devvit.addSchedulerJob({
+  name: "delayedModAction",
+  onRun: onDelayedModAction,
+});
+
 // Show current User Score for target author
 Devvit.addMenuItem({
   label: 'Get User Score',
@@ -29,10 +35,13 @@ Devvit.addMenuItem({
   onPress: showUserScore,
 });
 
-// Delayed ModAction processing for tracking comment removal status
-Devvit.addSchedulerJob({
-  name: "delayedModAction",
-  onRun: onDelayedModAction,
+// Generate report delivered via Modmail
+Devvit.addMenuItem({
+  label: 'User Scorer Report',
+  description: 'Generate a summary of User Scorer metrics, delivered via Modmail',
+  location: 'subreddit',
+  forUserType: 'moderator',
+  onPress: generateReport,
 });
 
 Devvit.addMenuItem({

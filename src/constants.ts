@@ -22,3 +22,8 @@ export const USERS_KEY = "#users";
  * Amount of time (in seconds) to delay processing automated ModActions
  */
 export const DELAY_MODACTION_BY = 5;
+
+/**
+ * Maximum bar length for histogram in reports
+ */
+export const HISTOGRAM_MAX_BAR_LENGTH = 30;
