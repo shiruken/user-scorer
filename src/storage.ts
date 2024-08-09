@@ -143,23 +143,31 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
   }
 
   // Get all user scores and calculate histogram
-  const zScanResponse = await redis.zScan(USERS_KEY, 0);
-  for (const user of zScanResponse.members) {
-    histogram.count++;
-    for (let i = 0; i < histogram.bins.length; i++) {
-      if (histogram.bins[i].range.length == 1) { // Single-value bins
-        if (user.score == histogram.bins[i].range[0]) {
-          histogram.bins[i].count++;
-          break;
-        }
-      } else { // Ranged bins
-        if (user.score > histogram.bins[i].range[0] && user.score <= histogram.bins[i].range[1]) {
-          histogram.bins[i].count++;
-          break;
+  let cursor = 0;
+  let calls = 0;
+  do {
+    const zScanResponse = await redis.zScan(USERS_KEY, cursor, undefined, 100);
+    for (const user of zScanResponse.members) {
+      histogram.count++;
+      for (let i = 0; i < histogram.bins.length; i++) {
+        if (histogram.bins[i].range.length == 1) { // Single-value bins
+          if (user.score == histogram.bins[i].range[0]) {
+            histogram.bins[i].count++;
+            break;
+          }
+        } else { // Ranged bins
+          if (user.score > histogram.bins[i].range[0] && user.score <= histogram.bins[i].range[1]) {
+            histogram.bins[i].count++;
+            break;
+          }
         }
       }
     }
-  }
+    cursor = zScanResponse.cursor;
+    calls++;
+  } while (cursor != 0);
+
+  console.log(`Processed ${histogram.count} users across ${calls} calls`);
 
   const count = await redis.zCard(USERS_KEY);
   if (count != histogram.count) {
@@ -170,7 +178,6 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
 
   // Log summary to console
   let txt = `\n\n` +
-    `User Scorer Report\n` +
     `Tracked Users: ${histogram.count}${
       histogram.is_complete ? "" : " (Warning! Failed to process all users)"
     }\n` +
