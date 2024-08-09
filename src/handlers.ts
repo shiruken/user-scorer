@@ -334,7 +334,7 @@ export async function generateReport(_event: MenuItemOnPressEvent, context: Cont
       } else { // Proportional representation
         bar_length = Math.round(bin.count / bin_max * HISTOGRAM_MAX_BAR_LENGTH);
       }
-      chart += `    ${bin.label} | ${"*".repeat(bar_length)} (${bin.count})\n`;
+      chart += `    ${bin.label} |${"*".repeat(bar_length)} (${bin.count})\n`;
     });
   }
 
