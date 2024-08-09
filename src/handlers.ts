@@ -54,7 +54,7 @@ export async function onCommentSubmit(event: CommentSubmit, context: TriggerCont
 
         // Report
         if (settings.reportComments && data.score >= settings.reportThreshold) {
-          const score_fmt = data.score.toLocaleString("en-US", { maximumFractionDigits: 2 });
+          const score_fmt = data.score.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 2 });
           const num_recent_comments = Math.min(data.comment_ids.length, settings.numComments);
           const num_recent_removed = num_recent_comments * data.score;
           await context.reddit
@@ -296,7 +296,7 @@ export async function showUserScore(event: MenuItemOnPressEvent, context: Contex
     console.log(`u/${username}: Recalculated score on settings change (score=${data.score})`);
   }
 
-  const score_fmt = data.score.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  const score_fmt = data.score.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 2 });
   const num_recent_comments = Math.min(data.comment_ids.length, settings.numComments);
   const num_recent_removed = num_recent_comments * data.score;
 
