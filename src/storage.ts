@@ -140,15 +140,23 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
       { range: [1.0],        label: "      x = 1.0", count: 0 },
     ],
     is_complete: true,
-  }
+    mean: 0,
+    median: 0,
+  };
 
   // Get all user scores and calculate histogram
   let cursor = 0;
   let calls = 0;
+  const scores: number[] = []; // Keep track of all assigned scores
   do {
     const zScanResponse = await redis.zScan(USERS_KEY, cursor, undefined, 100);
     for (const user of zScanResponse.members) {
       histogram.count++;
+
+      if (user.score != -1) {
+        scores.push(user.score);
+      }
+
       for (let i = 0; i < histogram.bins.length; i++) {
         if (histogram.bins[i].range.length == 1) { // Single-value bins
           if (user.score == histogram.bins[i].range[0]) {
@@ -176,6 +184,22 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
                   `and number of items processed (${histogram.count})`);
   }
 
+  // Calculate bulk statistics
+  histogram.mean = scores.reduce((a, b) => (a + b), 0) / (histogram.count - histogram.bins[0].count);
+
+  // If zScan required multiple calls to iterate through the whole set,
+  // then `scores` is NOT sorted in ascending order. If only a single
+  // call was used, then it IS sorted in ascending order.
+  if (calls > 1) {
+    scores.sort((a, b) => a - b);
+  }
+  const idx = Math.floor(scores.length / 2); // Middle index
+  if (scores.length % 2) {
+    histogram.median = scores[idx];
+  } else {
+    histogram.median = ((scores[idx - 1] + scores[idx]) / 2);
+  }
+
   // Log summary to console
   let txt = `\n\n` +
     `Tracked Users: ${histogram.count}${
@@ -183,6 +207,8 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
     }\n` +
     `Scored Users: ${histogram.count - histogram.bins[0].count}\n` +
     `Unscored Users: ${histogram.bins[0].count}\n` +
+    `Mean Score: ${histogram.mean}\n` +
+    `Median Score: ${histogram.median}\n` +
     `-----------------\n`;
   histogram.bins.slice(1).forEach(bin => {
     txt += `${bin.label}: ${bin.count}\n`;

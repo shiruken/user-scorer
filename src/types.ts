@@ -52,4 +52,8 @@ export type Histogram = {
   }[],
   /** Flag indicating whether the full data was processed */
   is_complete: boolean,
+  /** Mean value of scored users */
+  mean: number,
+  /** Median value of scored users */
+  median: number,
 }

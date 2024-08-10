@@ -324,9 +324,7 @@ export async function generateReport(_event: MenuItemOnPressEvent, context: Cont
   const histogram = await getHistogram(context.redis);
   const bin_max = Math.max(...histogram.bins.map(bin => bin.count));
   let chart = "";
-  if (bin_max == 0) {
-    chart = "    No scored users";
-  } else {
+  if (bin_max > 0) {
     histogram.bins.slice(1).forEach(bin => {
       let bar_length: number;
       if (bin_max <= HISTOGRAM_MAX_BAR_LENGTH) { // 1:1 representation
@@ -345,8 +343,12 @@ export async function generateReport(_event: MenuItemOnPressEvent, context: Cont
     }\n` +
     `* Scored Users: ${histogram.count - histogram.bins[0].count}\n` +
     `* Unscored Users: ${histogram.bins[0].count}\n\n` +
-    `**Score Distribution** (Best viewed on desktop)\n\n` +
-    `${chart}\n` +
+    `**User Score Distribution** (Best viewed on desktop)\n\n` +
+    `${
+      (chart == "") ? "    No scored users\n" : `${chart}\n` +
+      `* Mean Score: ${histogram.mean.toLocaleString("en-US", { maximumFractionDigits: 3 })}\n` +
+      `* Median Score: ${histogram.median.toLocaleString("en-US", { maximumFractionDigits: 3 })}\n\n`
+    }\n` +
     `**Settings** ([Edit](https://developers.reddit.com/r/${subreddit.name}/apps/user-scorer))\n\n` +
     `* Comment Reporting: ${
       settings.reportComments ? `Enabled (${settings.reportThreshold} threshold)` : "Disabled"
