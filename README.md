@@ -54,6 +54,13 @@ This action appears under the moderator menu on comments in the subreddit. It wi
 
 ![Screenshot of 'Get User Score' Menu Action](https://github.com/user-attachments/assets/d03994e0-4330-489b-b827-fcce742afbb2) ![Screenshot of 'Get User Score' Toasts](https://github.com/user-attachments/assets/c8e5bde1-bf23-41c6-ae0a-4074252133a4)
 
+### User Scorer Report
+
+This action appears under the moderator menu for the subreddit. It generates a report summarizing current User Scorer metrics, delivered via Modmail.
+
+![Screenshot of 'User Scorer Report' Menu Action](https://github.com/user-attachments/assets/28a6e3b4-3293-4331-a5bc-01997df3874b) ![Screenshot of 'User Scorer Report' Modmail Message](https://github.com/user-attachments/assets/3c35c1a3-6c60-4963-87db-86bd37ce5cf2)
+
+
 ## Limitations
 
 * The app currently relies upon the *tracking* of comments to establish a user's comment history. This means it is naive to any comments made *prior* to the installation of the app and that it will take some time to gather the minimum number of comments (5) necessary to assign a User Score.
