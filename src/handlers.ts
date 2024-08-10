@@ -354,8 +354,12 @@ export async function generateReport(_event: MenuItemOnPressEvent, context: Cont
     `**User Score Distribution** (Best viewed on desktop)\n\n` +
     `${
       (chart == "") ? "    No scored users\n" : `${chart}\n` +
-      `* Mean Score: ${histogram.mean.toLocaleString("en-US", { maximumFractionDigits: 3 })}\n` +
-      `* Median Score: ${histogram.median.toLocaleString("en-US", { maximumFractionDigits: 3 })}\n\n`
+      `* Mean Score: ${histogram.mean.toLocaleString("en-US", 
+        { minimumFractionDigits: 1, maximumFractionDigits: 3 }
+      )}\n` +
+      `* Median Score: ${histogram.median.toLocaleString("en-US", 
+        { minimumFractionDigits: 1, maximumFractionDigits: 3 }
+      )}\n\n`
     }\n` +
     `**Settings** ([Edit](https://developers.reddit.com/r/${subreddit.name}/apps/user-scorer))\n\n` +
     `* Comment Reporting: ${
