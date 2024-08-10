@@ -330,7 +330,7 @@ export async function generateReport(_event: MenuItemOnPressEvent, context: Cont
   }
 
   // Generate the histogram visualization
-  const bin_max = Math.max(...histogram.bins.map(bin => bin.count));
+  const bin_max = Math.max(...(histogram.bins.slice(1)).map(bin => bin.count));
   let chart = "";
   if (bin_max > 0) {
     histogram.bins.slice(1).forEach(bin => {
