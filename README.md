@@ -56,10 +56,9 @@ This action appears under the moderator menu on comments in the subreddit. It wi
 
 ### User Scorer Report
 
-This action appears under the moderator menu for the subreddit. It generates a report summarizing current User Scorer metrics, delivered via Modmail.
+This action appears under the moderator menu for the subreddit. It generates a report summarizing the current User Scorer metrics, delivered via Modmail. Statistics are calculated *excluding* 0.0 scores since the majority of scored users will have no removed comments.
 
-![Screenshot of 'User Scorer Report' Menu Action](https://github.com/user-attachments/assets/28a6e3b4-3293-4331-a5bc-01997df3874b) ![Screenshot of 'User Scorer Report' Modmail Message](https://github.com/user-attachments/assets/3c35c1a3-6c60-4963-87db-86bd37ce5cf2)
-
+![Screenshot of 'User Scorer Report' Menu Action](https://github.com/user-attachments/assets/28a6e3b4-3293-4331-a5bc-01997df3874b) ![Screenshot of 'User Scorer Report' Modmail Message](https://github.com/user-attachments/assets/f410c1a1-b1e0-413b-bd0b-f3a32898551a)
 
 ## Limitations
 
