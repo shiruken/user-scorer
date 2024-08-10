@@ -44,17 +44,17 @@ Devvit.addMenuItem({
   onPress: generateReport,
 });
 
-// Devvit.addMenuItem({
-//   label: 'Clear User Score for u/shiruken',
-//   location: 'subreddit',
-//   forUserType: 'moderator',
-//   onPress: async(_event, context) => {
-//     await context.redis.del("shiruken");
-//     await context.redis.zRem("#users", ["shiruken"]);
-//     console.log("Deleted u/shiruken from Redis");
-//     context.ui.showToast("Deleted u/shiruken from Redis");
-//   },
-// });
+Devvit.addMenuItem({
+  label: 'Clear User Score for u/shiruken',
+  location: 'subreddit',
+  forUserType: 'moderator',
+  onPress: async(_event, context) => {
+    await context.redis.del("shiruken");
+    await context.redis.zRem("#users", ["shiruken"]);
+    console.log("Deleted u/shiruken from Redis");
+    context.ui.showToast("Deleted u/shiruken from Redis");
+  },
+});
 
 // Devvit.addMenuItem({
 //   label: 'Get Tracked Users',
@@ -74,8 +74,17 @@ Devvit.addMenuItem({
 //   location: 'subreddit',
 //   forUserType: 'moderator',
 //   onPress: async(_event, context) => {
-//     for (let i = 0; i < 10000; i++) {
-//       await context.redis.zAdd("#users", { member: `TestUser_${i}`, score: Math.random() });
+//     for (let i = 0; i < 1000; i++) {
+//       await context.redis.zAdd("#users", { member: `Test_Unscored_${i}`, score: -1 });
+//     }
+//     for (let i = 0; i < 500; i++) {
+//       await context.redis.zAdd("#users", { member: `Test_Zero_${i}`, score: 0 });
+//     }
+//     for (let i = 0; i < 500; i++) {
+//       await context.redis.zAdd("#users", { 
+//         member: `Test_Scored_${i}`,
+//         score: 1 - Math.sqrt(Math.random()),
+//       });
 //     }
 //     console.log(`Added test users`);
 //     context.ui.showToast("Added test users");
@@ -87,8 +96,14 @@ Devvit.addMenuItem({
 //   location: 'subreddit',
 //   forUserType: 'moderator',
 //   onPress: async(_event, context) => {
-//     for (let i = 0; i < 10000; i++) {
-//       await context.redis.zRem("#users", [`TestUser_${i}`]);
+//     for (let i = 0; i < 1000; i++) {
+//       await context.redis.zRem("#users", [`Test_Unscored_${i}`]);
+//     }
+//     for (let i = 0; i < 500; i++) {
+//       await context.redis.zRem("#users", [`Test_Zero_${i}`]);
+//     }
+//     for (let i = 0; i < 500; i++) {
+//       await context.redis.zRem("#users", [`Test_Scored_${i}`]);
 //     }
 //     console.log(`Removed test users`);
 //     context.ui.showToast("Removed test users");
