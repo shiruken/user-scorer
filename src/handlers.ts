@@ -330,10 +330,13 @@ export async function generateReport(_event: MenuItemOnPressEvent, context: Cont
   }
 
   // Generate the histogram visualization
-  const bin_max = Math.max(...(histogram.bins.slice(1)).map(bin => bin.count));
+  // 0.0 is not drawn to avoid obscuring distribution
+  const bin_max = Math.max(...(histogram.bins.slice(2)).map(bin => bin.count));
   let chart = "";
   if (bin_max > 0) {
-    histogram.bins.slice(1).forEach(bin => {
+    chart += `    ${histogram.bins[1].label} | -- Not Shown -- ` +
+             `(${histogram.bins[1].count.toLocaleString("en-US")})\n`;
+    histogram.bins.slice(2).forEach(bin => {
       let bar_length: number;
       if (bin_max <= HISTOGRAM_MAX_BAR_LENGTH) { // 1:1 representation
         bar_length = bin.count;

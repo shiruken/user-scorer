@@ -163,13 +163,14 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
   // Get all user scores and calculate histogram
   let cursor = 0;
   let calls = 0;
-  const scores: number[] = []; // Keep track of all assigned scores
+  const scores: number[] = []; // Keep track of individual scores for stats
   do {
     const zScanResponse = await redis.zScan(USERS_KEY, cursor, undefined, 100);
     for (const user of zScanResponse.members) {
       histogram.count++;
 
-      if (user.score != -1) {
+      // Calculating nonzero stats
+      if (user.score > 0) {
         scores.push(user.score);
       }
 
@@ -202,7 +203,9 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
 
   // Calculate bulk statistics
   histogram.count_scored = histogram.count - histogram.bins[0].count;
-  histogram.mean = scores.reduce((a, b) => (a + b), 0) / (histogram.count_scored);
+  histogram.mean =
+    scores.reduce((a, b) => a + b, 0) /
+    (histogram.count_scored - histogram.bins[1].count);
 
   // If zScan required multiple calls to iterate through the whole set,
   // then `scores` is NOT sorted in ascending order. If only a single
@@ -225,8 +228,8 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
       }\n` +
       `Unscored Users: ${histogram.bins[0].count}\n` +
       `Scored Users: ${histogram.count_scored}\n` +
-      `Mean Score: ${histogram.mean}\n` +
-      `Median Score: ${histogram.median}\n` +
+      `Mean (Nonzero): ${histogram.mean}\n` +
+      `Median (Nonzero): ${histogram.median}\n` +
       `-----------------\n`;
     histogram.bins.slice(1).forEach(bin => {
       txt += `${bin.label}: ${bin.count}\n`;
