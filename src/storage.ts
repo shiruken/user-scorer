@@ -201,20 +201,22 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
   }
 
   // Log summary to console
-  let txt = `\n\n` +
-    `Tracked Users: ${histogram.count}${
-      histogram.is_complete ? "" : " (Warning! Failed to process all users)"
-    }\n` +
-    `Scored Users: ${histogram.count - histogram.bins[0].count}\n` +
-    `Unscored Users: ${histogram.bins[0].count}\n` +
-    `Mean Score: ${histogram.mean}\n` +
-    `Median Score: ${histogram.median}\n` +
-    `-----------------\n`;
-  histogram.bins.slice(1).forEach(bin => {
-    txt += `${bin.label}: ${bin.count}\n`;
-  });
-  txt += `-----------------\n`;
-  console.log(txt);
+  if (histogram.count > 0) {
+    let txt = `\n\n` +
+      `Tracked Users: ${histogram.count}${
+        histogram.is_complete ? "" : " (Warning! Failed to process all users)"
+      }\n` +
+      `Scored Users: ${histogram.count - histogram.bins[0].count}\n` +
+      `Unscored Users: ${histogram.bins[0].count}\n` +
+      `Mean Score: ${histogram.mean}\n` +
+      `Median Score: ${histogram.median}\n` +
+      `-----------------\n`;
+    histogram.bins.slice(1).forEach(bin => {
+      txt += `${bin.label}: ${bin.count}\n`;
+    });
+    txt += `-----------------\n`;
+    console.log(txt);
+  }
 
   return histogram;
 }

@@ -320,8 +320,15 @@ export async function generateReport(_event: MenuItemOnPressEvent, context: Cont
   const subreddit = await context.reddit.getCurrentSubreddit();
   const settings = await getAppSettings(context.settings);
 
-  // Generate the histogram visualization
   const histogram = await getHistogram(context.redis);
+
+  if (histogram.count == 0) {
+    context.ui.showToast("No tracked users!");
+    console.error("No tracked users");
+    return;
+  }
+
+  // Generate the histogram visualization
   const bin_max = Math.max(...histogram.bins.map(bin => bin.count));
   let chart = "";
   if (bin_max > 0) {
