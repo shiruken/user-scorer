@@ -3,7 +3,7 @@ import { CommentSubmit, ModAction } from '@devvit/protos';
 import { DELAY_MODACTION_BY, HISTOGRAM_MAX_BAR_LENGTH, MIN_NUM_COMMENTS } from "./constants.js";
 import { calculateScore } from "./scorer.js";
 import { getAppSettings } from "./settings.js";
-import { getHistogram, getUserData, initUserData, storeComments, storeRemovedComments, trimArray } from "./storage.js";
+import { getHistogram, getUserData, initUserData, storeComments, storeRemovedComments, storeScore, trimArray } from "./storage.js";
 import { UserData } from "./types.js";
 
 /**
@@ -293,6 +293,7 @@ export async function showUserScore(event: MenuItemOnPressEvent, context: Contex
   const settings = await getAppSettings(context.settings);
   if (settings.numComments != data.numComments_for_score) {
     data.score = calculateScore(data, settings.numComments);
+    await storeScore(data, context.redis);
     console.log(`u/${username}: Recalculated score on settings change (score=${data.score})`);
   }
 

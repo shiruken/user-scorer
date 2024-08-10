@@ -66,7 +66,7 @@ export async function getUserData(username: string, redis: RedisClient): Promise
 }
 
 /**
- * Write comments and score for user to Redis
+ * Write comments (and score) for user to Redis
  * @param data A {@link UserData} object
  * @param redis A RedisClient object
  */
@@ -83,7 +83,7 @@ export async function storeComments(data: UserData, redis: RedisClient) {
 }
 
 /**
- * Write removed comments and score for user to Redis
+ * Write removed comments (and score) for user to Redis
  * @param data A {@link UserData} object
  * @param redis A RedisClient object
  */
@@ -93,6 +93,21 @@ export async function storeRemovedComments(data: UserData, redis: RedisClient) {
     ['removed_comment_ids']: JSON.stringify(data.removed_comment_ids),
     ['score']: JSON.stringify(data.score),
     ['numComments_for_score']: JSON.stringify(data.numComments_for_score),
+  });
+
+  // Update score in sorted set of all users
+  await redis.zAdd(USERS_KEY, { member: data.name, score: data.score });
+}
+
+/**
+ * Write score for user to Redis
+ * @param data A {@link UserData} object
+ * @param redis A RedisClient object
+ */
+export async function storeScore(data: UserData, redis: RedisClient) {
+  // Update score in user hash
+  await redis.hset(data.name, {
+    ['score']: JSON.stringify(data.score),
   });
 
   // Update score in sorted set of all users
