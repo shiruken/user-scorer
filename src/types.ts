@@ -38,6 +38,8 @@ export type UserData = {
 export type Histogram = {
   /** Total number of users tracked by User Scorer */
   count: number,
+  /** Total number of users with assigned User Scores */
+  count_scored: number,
   /** Array of histogram bins */
   bins: {
     /** 

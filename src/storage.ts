@@ -139,6 +139,7 @@ export async function storeScore(data: UserData, redis: RedisClient) {
 export async function getHistogram(redis: RedisClient): Promise<Histogram> {
   const histogram: Histogram = {
     count: 0,
+    count_scored: 0,
     bins: [
       { range: [-1.0],       label: "      x =-1.0", count: 0 }, // Unassigned
       { range: [0],          label: "      x = 0.0", count: 0 },
@@ -200,7 +201,8 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
   }
 
   // Calculate bulk statistics
-  histogram.mean = scores.reduce((a, b) => (a + b), 0) / (histogram.count - histogram.bins[0].count);
+  histogram.count_scored = histogram.count - histogram.bins[0].count;
+  histogram.mean = scores.reduce((a, b) => (a + b), 0) / (histogram.count_scored);
 
   // If zScan required multiple calls to iterate through the whole set,
   // then `scores` is NOT sorted in ascending order. If only a single
@@ -221,7 +223,7 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
       `Tracked Users: ${histogram.count}${
         histogram.is_complete ? "" : " (Warning! Failed to process all users)"
       }\n` +
-      `Scored Users: ${histogram.count - histogram.bins[0].count}\n` +
+      `Scored Users: ${histogram.count_scored}\n` +
       `Unscored Users: ${histogram.bins[0].count}\n` +
       `Mean Score: ${histogram.mean}\n` +
       `Median Score: ${histogram.median}\n` +

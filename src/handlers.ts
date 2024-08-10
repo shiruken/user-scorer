@@ -349,7 +349,7 @@ export async function generateReport(_event: MenuItemOnPressEvent, context: Cont
     `* Tracked Users: ${histogram.count}${
       histogram.is_complete ? "" : " (**Warning! Failed to process all users**)"
     }\n` +
-    `* Scored Users: ${histogram.count - histogram.bins[0].count}\n` +
+    `* Scored Users: ${histogram.count_scored}\n` +
     `* Unscored Users: ${histogram.bins[0].count}\n\n` +
     `**User Score Distribution** (Best viewed on desktop)\n\n` +
     `${
