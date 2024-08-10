@@ -44,17 +44,17 @@ Devvit.addMenuItem({
   onPress: generateReport,
 });
 
-Devvit.addMenuItem({
-  label: 'Clear User Score for u/shiruken',
-  location: 'subreddit',
-  forUserType: 'moderator',
-  onPress: async(_event, context) => {
-    await context.redis.del("shiruken");
-    await context.redis.zRem("#users", ["shiruken"]);
-    console.log("Deleted u/shiruken from Redis");
-    context.ui.showToast("Deleted u/shiruken from Redis");
-  },
-});
+// Devvit.addMenuItem({
+//   label: 'Clear User Score for u/shiruken',
+//   location: 'subreddit',
+//   forUserType: 'moderator',
+//   onPress: async(_event, context) => {
+//     await context.redis.del("shiruken");
+//     await context.redis.zRem("#users", ["shiruken"]);
+//     console.log("Deleted u/shiruken from Redis");
+//     context.ui.showToast("Deleted u/shiruken from Redis");
+//   },
+// });
 
 // Devvit.addMenuItem({
 //   label: 'Get Tracked Users',

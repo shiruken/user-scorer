@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "user-scorer",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "license": "BSD-3-Clause",
   "type": "module",
   "scripts": {
