@@ -223,8 +223,8 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
       `Tracked Users: ${histogram.count}${
         histogram.is_complete ? "" : " (Warning! Failed to process all users)"
       }\n` +
-      `Scored Users: ${histogram.count_scored}\n` +
       `Unscored Users: ${histogram.bins[0].count}\n` +
+      `Scored Users: ${histogram.count_scored}\n` +
       `Mean Score: ${histogram.mean}\n` +
       `Median Score: ${histogram.median}\n` +
       `-----------------\n`;

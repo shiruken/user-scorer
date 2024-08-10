@@ -340,17 +340,17 @@ export async function generateReport(_event: MenuItemOnPressEvent, context: Cont
       } else { // Proportional representation
         bar_length = Math.round(bin.count / bin_max * HISTOGRAM_MAX_BAR_LENGTH);
       }
-      chart += `    ${bin.label} |${"*".repeat(bar_length)} (${bin.count})\n`;
+      chart += `    ${bin.label} |${"*".repeat(bar_length)} (${bin.count.toLocaleString("en-US")})\n`;
     });
   }
 
   const body =
     `**Overview**\n\n` +
-    `* Tracked Users: ${histogram.count}${
+    `* Tracked Users: ${histogram.count.toLocaleString("en-US")}${
       histogram.is_complete ? "" : " (**Warning! Failed to process all users**)"
     }\n` +
-    `* Scored Users: ${histogram.count_scored}\n` +
-    `* Unscored Users: ${histogram.bins[0].count}\n\n` +
+    `* Unscored Users: ${histogram.bins[0].count.toLocaleString("en-US")}\n` +
+    `* Scored Users: ${histogram.count_scored.toLocaleString("en-US")}\n\n` +
     `**User Score Distribution** (Best viewed on desktop)\n\n` +
     `${
       (chart == "") ? "    No scored users\n" : `${chart}\n` +
