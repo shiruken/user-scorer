@@ -86,6 +86,9 @@ Devvit.addMenuItem({
 //         score: 1 - Math.sqrt(Math.random()),
 //       });
 //     }
+//     for (let i = 0; i < 10; i++) {
+//       await context.redis.zAdd("#users", { member: `Test_One_${i}`, score: 1 });
+//     }
 //     console.log(`Added test users`);
 //     context.ui.showToast("Added test users");
 //   },
@@ -104,6 +107,9 @@ Devvit.addMenuItem({
 //     }
 //     for (let i = 0; i < 500; i++) {
 //       await context.redis.zRem("#users", [`Test_Scored_${i}`]);
+//     }
+//     for (let i = 0; i < 10; i++) {
+//       await context.redis.zRem("#users", [ `Test_One_${i}`]);
 //     }
 //     console.log(`Removed test users`);
 //     context.ui.showToast("Removed test users");
