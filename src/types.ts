@@ -42,11 +42,6 @@ export type Histogram = {
   count_scored: number,
   /** Array of histogram bins */
   bins: {
-    /** 
-     * Array defining the lower (exclusive) and upper (inclusive) bounds of the bin.
-     * A single element array defines a single-value bin
-    */
-    range: number[],
     /** Formatted bin label for printing */
     label: string,
     /** Frequency count of the bin */
