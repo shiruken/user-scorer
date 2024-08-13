@@ -160,39 +160,28 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
     median: 0,
   };
 
-  // Get all user scores and calculate histogram
-  let cursor = 0;
-  let calls = 0;
-  const scores: number[] = []; // Keep track of individual scores for stats
-  do {
-    const zScanResponse = await redis.zScan(USERS_KEY, cursor, undefined, 100);
-    for (const user of zScanResponse.members) {
-      histogram.count++;
+  // Count users with unassigned (x = -1.0) scores
+  const users_unassigned = await redis.zRange(USERS_KEY, -1, -1, { by: 'score' });
+  histogram.bins[0].count = users_unassigned.length;
 
-      // Calculating nonzero stats
-      if (user.score > 0) {
-        scores.push(user.score);
-      }
+  // Count users with x = 0.0 scores
+  const users_zero = await redis.zRange(USERS_KEY, 0, 0, { by: 'score' });
+  histogram.bins[1].count = users_zero.length;
 
-      for (let i = 0; i < histogram.bins.length; i++) {
-        if (histogram.bins[i].range.length == 1) { // Single-value bins
-          if (user.score == histogram.bins[i].range[0]) {
-            histogram.bins[i].count++;
-            break;
-          }
-        } else { // Ranged bins
-          if (user.score > histogram.bins[i].range[0] && user.score <= histogram.bins[i].range[1]) {
-            histogram.bins[i].count++;
-            break;
-          }
-        }
-      }
-    }
-    cursor = zScanResponse.cursor;
-    calls++;
-  } while (cursor != 0);
+  // Count users with x = 1.0 scores
+  const users_one = await redis.zRange(USERS_KEY, 1, 1, { by: 'score' });
+  histogram.bins[12].count = users_one.length;
 
-  console.log(`Processed ${histogram.count} users across ${calls} calls`);
+  // Get all users with 0.0 < x < 1.0 scores and calculate histogram
+  // 0.001 and 0.999 are the min and max values possible with 1000 item limit
+  const users = await redis.zRange(USERS_KEY, 0.00001, 0.99999, { by: 'score' });
+  for (const user of users) {
+    const idx = Math.ceil(user.score / 0.1) + 1;
+    histogram.bins[idx].count++;
+  }
+
+  histogram.count = histogram.bins.reduce((a, b) => a + b.count, 0);
+  histogram.count_scored = histogram.count - histogram.bins[0].count;
 
   const count = await redis.zCard(USERS_KEY);
   if (count != histogram.count) {
@@ -202,22 +191,16 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
   }
 
   // Calculate bulk statistics
-  histogram.count_scored = histogram.count - histogram.bins[0].count;
-  histogram.mean =
-    scores.reduce((a, b) => a + b, 0) /
-    (histogram.count_scored - histogram.bins[1].count);
+  // Excluding x = 0.0 scores
+  // Including x = 1.0 scores
+  users.push(...users_one);
+  histogram.mean = users.reduce((a, b) => a + b.score, 0) / users.length;
 
-  // If zScan required multiple calls to iterate through the whole set,
-  // then `scores` is NOT sorted in ascending order. If only a single
-  // call was used, then it IS sorted in ascending order.
-  if (calls > 1) {
-    scores.sort((a, b) => a - b);
-  }
-  const idx = Math.floor(scores.length / 2); // Middle index
-  if (scores.length % 2) {
-    histogram.median = scores[idx];
+  const idx = Math.floor(users.length / 2); // Middle index
+  if (users.length % 2) {
+    histogram.median = users[idx].score;
   } else {
-    histogram.median = ((scores[idx - 1] + scores[idx]) / 2);
+    histogram.median = (users[idx - 1].score + users[idx].score) / 2;
   }
 
   // Log summary to console
