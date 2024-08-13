@@ -183,6 +183,10 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
   histogram.count = histogram.bins.reduce((a, b) => a + b.count, 0);
   histogram.count_scored = histogram.count - histogram.bins[0].count;
 
+  if (histogram.count == 0) {
+    return histogram;
+  }
+
   const count = await redis.zCard(USERS_KEY);
   if (count != histogram.count) {
     histogram.is_complete = false;
@@ -204,22 +208,20 @@ export async function getHistogram(redis: RedisClient): Promise<Histogram> {
   }
 
   // Log summary to console
-  if (histogram.count > 0) {
-    let txt = `\n\n` +
-      `Tracked Users: ${histogram.count}${
-        histogram.is_complete ? "" : " (Warning! Failed to process all users)"
-      }\n` +
-      `Unscored Users: ${histogram.bins[0].count}\n` +
-      `Scored Users: ${histogram.count_scored}\n` +
-      `Mean (Nonzero): ${histogram.mean}\n` +
-      `Median (Nonzero): ${histogram.median}\n` +
-      `-----------------\n`;
-    histogram.bins.slice(1).forEach(bin => {
-      txt += `${bin.label}: ${bin.count}\n`;
-    });
-    txt += `-----------------\n`;
-    console.log(txt);
-  }
+  let txt = `\n\n` +
+    `Tracked Users: ${histogram.count}${
+      histogram.is_complete ? "" : " (Warning! Failed to process all users)"
+    }\n` +
+    `Unscored Users: ${histogram.bins[0].count}\n` +
+    `Scored Users: ${histogram.count_scored}\n` +
+    `Mean (Nonzero): ${histogram.mean}\n` +
+    `Median (Nonzero): ${histogram.median}\n` +
+    `-----------------\n`;
+  histogram.bins.slice(1).forEach(bin => {
+    txt += `${bin.label}: ${bin.count}\n`;
+  });
+  txt += `-----------------\n`;
+  console.log(txt);
 
   return histogram;
 }
