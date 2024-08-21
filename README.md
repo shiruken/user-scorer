@@ -46,6 +46,18 @@ The User Score metric ranges in value between 0 and 1 (inclusive). A User Score 
 * Use a Report Threshold of `0` to get reports on *all* new comments (from users with assigned User Scores).
 * Comments will still be tracked even if both Comment Reporting and Comment Removal are disabled.
 
+## Moderation Actions
+
+### Comment Reporting
+
+![Screenshot of Reported Comment](https://github.com/user-attachments/assets/07673cd1-49da-4a9f-9c0f-597b26c47ee3)
+
+### Comment Removal
+
+![Screenshot of Removed Comment](https://github.com/user-attachments/assets/d3961e96-9ed6-4d3c-9737-05926c2b7a4b)
+
+![Screenshot of Mod Log Entry](https://github.com/user-attachments/assets/9db26275-bf32-4675-ac68-5073bb093b52)
+
 ## Menu Actions
 
 ### Get User Score
