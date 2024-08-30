@@ -20,6 +20,8 @@ The User Score metric ranges in value between 0 and 1 (inclusive). A User Score 
 
 ![User Score Line Diagram](https://github.com/user-attachments/assets/1ea3bffa-2aef-447f-a764-29890c30f25e)
 
+*Note: User Score is an **unofficial** metric created solely for this app and has no connection to official Reddit moderation metrics.*
+
 ## Installation Settings
 
 ![Screenshot of Installation Settings](https://github.com/user-attachments/assets/8baad9f6-414b-47af-bcd3-18db13f88172)
@@ -74,7 +76,7 @@ This action appears under the moderator menu for the subreddit. It generates a r
 
 ## Limitations
 
-* The app currently relies upon the *tracking* of comments to establish a user's comment history. This means it is naive to any comments made *prior* to the installation of the app and that it will take some time to gather the minimum number of comments (5) necessary to assign a User Score.
+* The app currently relies upon the *tracking* of comments to establish a user's comment history (necessary to handle deletions). This means it is naive to any comments made *prior* to the installation of the app and that it will take some time to gather the minimum number of comments (5) necessary to assign a User Score.
 * Uninstalling the app will delete all its data. This includes all tracked users and their respective comment histories. There is currently no way to backup (or restore) this data, so be careful when uninstalling.
 * The app can currently only report and/or remove comments. Filtering content directly to the Mod Queue is a feature exclusive to AutoModerator.
 
