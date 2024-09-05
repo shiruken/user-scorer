@@ -378,6 +378,7 @@ export async function generateReport(_event: MenuItemOnPressEvent, context: Cont
       )}\n\n`
     }\n` +
     `**Settings** ([Edit](https://developers.reddit.com/r/${subreddit.name}/apps/user-scorer))\n\n` +
+    `* Number of Comments: ${settings.numComments}\n` +
     `* Comment Reporting: ${
       settings.reportComments ? `Enabled (${settings.reportThreshold} threshold)` : "Disabled"
     }\n` +
