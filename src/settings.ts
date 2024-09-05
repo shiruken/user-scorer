@@ -53,6 +53,13 @@ export const settings: SettingsFormField[] = [
       },
     ]
   },
+  {
+    type: 'string',
+    name: 'ignoredMods',
+    label: 'Ignored Moderators',
+    helpText: 'Actions by these moderators are ignored and do not contribute to User Score (see README for implications). Enter as comma-separated list.',
+    defaultValue: '',
+  },
 ];
 
 /**

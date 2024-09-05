@@ -130,6 +130,21 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
     return;
   }
 
+  const moderator = event.moderator;
+  if (!moderator) {
+    throw new Error('Missing `moderator` in onModAction');
+  }
+
+  // Parse ignored mods
+  const settings = await getAppSettings(context.settings);
+  const ignoredMods = settings.ignoredMods.replace(/(\/?u\/)|\s/g, ""); // Strip out user tags and spaces
+  const ignoredModsList = (ignoredMods == "") ? [] : ignoredMods.toLowerCase().split(",");
+  if (ignoredModsList.includes(moderator.name.toLowerCase())) {
+    console.log(`u/${user.name}: Skipped ${action} on ${comment.id}, ` +
+                `actions by ${moderator.name} are ignored`);
+    return;
+  }
+
   let data = await getUserData(user.name, context.redis);
 
   // If user data doesn't exist or the comment is missing from tracked
@@ -137,12 +152,6 @@ export async function onModAction(event: ModAction, context: TriggerContext) {
   // tracking to complete. This helps address the race condition that 
   // exists between the CommentSubmit and ModAction triggers.
   if (!data || !(data.comment_ids.includes(comment.id))) {
-    const moderator = event.moderator;
-    if (!moderator) {
-      throw new Error(`Missing \`moderator\` in onModAction, unable to delay ` +
-                      `processing of ${action} on ${comment.id}`);
-    }
-
     if (moderator.name == "AutoModerator" || moderator.name == "reddit") {
       const now = new Date();
       const delay = new Date(now.getTime() + DELAY_MODACTION_BY * 1000);

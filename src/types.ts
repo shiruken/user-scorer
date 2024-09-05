@@ -12,6 +12,8 @@ export type AppSettings = {
   removeComments: boolean;
   /** Remove comments with User Score greater than or equal to this value */
   removeThreshold: number;
+  /** Ignore actions by these moderators */
+  ignoredMods: string;
 };
 
 /**
