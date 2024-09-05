@@ -24,9 +24,9 @@ The User Score metric ranges in value between 0 and 1 (inclusive). A User Score 
 
 ## Installation Settings
 
-![Screenshot of Installation Settings](https://github.com/user-attachments/assets/8baad9f6-414b-47af-bcd3-18db13f88172)
+![Screenshot of Installation Settings](https://github.com/user-attachments/assets/c5711a8c-49fc-4e6c-862e-15ba4f97dfb3)
 
-* **Number of Comments**: The maximum number of recent comments by a user to consider when calculating their User Score
+* **Number of Comments:** The maximum number of recent comments by a user to consider when calculating their User Score
   * Minimum: 5 (User Scores are not assigned until at least five comments have been tracked)
   * Maximum: 1000
 * Comment Reporting
@@ -41,6 +41,10 @@ The User Score metric ranges in value between 0 and 1 (inclusive). A User Score 
     * Minimum: 0.0 (No recent comments from the user have been removed)
     * Maximum: 1.0 (All recent comments from the user have been removed)
     * Should be *greater than* the **Report Threshold**
+* **Ignored Moderators:** Actions by these moderators are ignored and do not contribute to User Score
+  * Enter as a comma-separated list (e.g. `AutoModerator, comment-nuke`)
+  * **Warning:** Ignoring actions by certain moderators complicates the interpretation of the User Score metric. It will no longer represent a _complete_ removed comment history for a user since certain removals will have been excluded from tracking. This may lead to inconsistencies between the numbers reported by User Scorer and the Moderation Log entries for the user.
+  * This setting _does not_ retroactively modify existing User Scores and only applies to future moderator actions.
 
 ### Tips
 
@@ -54,6 +58,8 @@ The User Score metric ranges in value between 0 and 1 (inclusive). A User Score 
 
 ![Screenshot of Reported Comment](https://github.com/user-attachments/assets/07673cd1-49da-4a9f-9c0f-597b26c47ee3)
 
+_Note: If any moderators are ignored in the installation settings, an asterisk will be appended to the removed comment count_
+
 ### Comment Removal
 
 ![Screenshot of Removed Comment](https://github.com/user-attachments/assets/d3961e96-9ed6-4d3c-9737-05926c2b7a4b)
@@ -64,15 +70,17 @@ The User Score metric ranges in value between 0 and 1 (inclusive). A User Score 
 
 ### Get User Score
 
-This action appears under the moderator menu on comments in the subreddit. It will display the current User Score for the comment's author, if it has been assigned.
+This action appears under the moderator menu on comments in the subreddit. It displays the current User Score for the comment's author (if it has been assigned).
 
 ![Screenshot of 'Get User Score' Menu Action](https://github.com/user-attachments/assets/d03994e0-4330-489b-b827-fcce742afbb2) ![Screenshot of 'Get User Score' Toasts](https://github.com/user-attachments/assets/c8e5bde1-bf23-41c6-ae0a-4074252133a4)
+
+_Note: If any moderators are ignored in the installation settings, an asterisk will be appended to the removed comment count_
 
 ### User Scorer Report
 
 This action appears under the moderator menu for the subreddit. It generates a report summarizing the current User Scorer metrics, delivered via Modmail. Statistics are calculated *excluding* 0.0 scores since the majority of scored users will have no removed comments.
 
-![Screenshot of 'User Scorer Report' Menu Action](https://github.com/user-attachments/assets/28a6e3b4-3293-4331-a5bc-01997df3874b) ![Screenshot of 'User Scorer Report' Modmail Message](https://github.com/user-attachments/assets/f410c1a1-b1e0-413b-bd0b-f3a32898551a)
+![Screenshot of 'User Scorer Report' Menu Action](https://github.com/user-attachments/assets/28a6e3b4-3293-4331-a5bc-01997df3874b) ![Screenshot of 'User Scorer Report' Modmail Message](https://github.com/user-attachments/assets/03d6df02-aeca-4a25-91ed-09bfa1261861)
 
 ## Limitations
 
