@@ -1,4 +1,4 @@
-import { Context, MenuItemOnPressEvent, ScheduledJobEvent, TriggerContext } from "@devvit/public-api";
+import { Context, JobContext, JSONObject, MenuItemOnPressEvent, ScheduledJobEvent, TriggerContext } from "@devvit/public-api";
 import { CommentSubmit, ModAction } from '@devvit/protos';
 import { DELAY_MODACTION_BY, HISTOGRAM_MAX_BAR_LENGTH, MIN_NUM_COMMENTS } from "./constants.js";
 import { calculateScore } from "./scorer.js";
@@ -252,14 +252,14 @@ async function processModAction(
 /**
  * Relay Scheduler job for delayed mod action processing
  * @param event A ScheduledJobEvent object
- * @param context A Context object (unable to type properly for ScheduledJobHandler)
+ * @param context A JobContext object
  */
-export async function onDelayedModAction(event: ScheduledJobEvent, context: any) {
-  const data = event.data;
-  if (!data) {
+export async function onDelayedModAction(event: ScheduledJobEvent<JSONObject>, context: JobContext) {
+  if (!event.data) {
     throw new Error('Missing `data` in onDelayedModAction');
   }
 
+  const data = event.data as { [key: string]: string };
   if (!(data.action && data.username && data.comment_id)) {
     throw new Error('Improper `data` in onDelayedModAction');
   }
