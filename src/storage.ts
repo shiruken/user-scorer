@@ -11,7 +11,7 @@ import { Histogram, UserData } from "./types.js";
  */
 export async function initUserData(username: string, id: string, redis: RedisClient): Promise<UserData> {
   // Initialize Redis hash
-  await redis.hset(username, {
+  await redis.hSet(username, {
     ['id']: id,
     ['name']: username,
     ['comment_ids']: "[]",
@@ -38,7 +38,7 @@ export async function initUserData(username: string, id: string, redis: RedisCli
  * @returns A Promise that resolves to a {@link UserData} object if the user exists
  */
 export async function getUserData(username: string, redis: RedisClient): Promise<UserData | undefined> {
-  let hash = await redis.hgetall(username);
+  let hash = await redis.hGetAll(username);
 
   // hgetall is currently returning an empty object instead 
   // of `undefined` when the key does not exist
@@ -72,7 +72,7 @@ export async function getUserData(username: string, redis: RedisClient): Promise
  */
 export async function storeComments(data: UserData, redis: RedisClient) {
   // Update comments and score in user hash
-  await redis.hset(data.name, {
+  await redis.hSet(data.name, {
     ['comment_ids']: JSON.stringify(data.comment_ids),
     ['score']: JSON.stringify(data.score),
     ['numComments_for_score']: JSON.stringify(data.numComments_for_score),
@@ -89,7 +89,7 @@ export async function storeComments(data: UserData, redis: RedisClient) {
  */
 export async function storeRemovedComments(data: UserData, redis: RedisClient) {
   // Update removed comments and score in user hash
-  await redis.hset(data.name, {
+  await redis.hSet(data.name, {
     ['removed_comment_ids']: JSON.stringify(data.removed_comment_ids),
     ['score']: JSON.stringify(data.score),
     ['numComments_for_score']: JSON.stringify(data.numComments_for_score),
@@ -106,7 +106,7 @@ export async function storeRemovedComments(data: UserData, redis: RedisClient) {
  */
 export async function storeScore(data: UserData, redis: RedisClient) {
   // Update score in user hash
-  await redis.hset(data.name, {
+  await redis.hSet(data.name, {
     ['score']: JSON.stringify(data.score),
   });
 
