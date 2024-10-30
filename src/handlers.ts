@@ -392,11 +392,10 @@ export async function generateReport(_event: MenuItemOnPressEvent, context: Cont
     `Report requested by u/${currentUser?.username}.*`;
 
   await context.reddit.modMail
-    .createConversation({
-      to: "user-scorer",
+    .createModInboxConversation({
+      subredditId: subreddit.id,
       subject: "User Scorer Report",
-      body: body,
-      subredditName: subreddit.name,
+      bodyMarkdown: body,
     })
     .then(() => {
       console.log("Sent modmail with report");
