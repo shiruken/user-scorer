@@ -88,7 +88,22 @@ This action appears under the moderator menu for the subreddit. It generates a r
 * Uninstalling the app will delete all its data. This includes all tracked users and their respective comment histories. There is currently no way to backup (or restore) this data, so be careful when uninstalling.
 * The app can currently only report and/or remove comments. Filtering content directly to the Mod Queue is a feature exclusive to AutoModerator.
 
+## Changelog
+
+*[View Releases on GitHub](https://github.com/shiruken/user-scorer/releases)*
+
+* v1.3
+  * Modmail notifications are now routed into the Inbox rather than Mod Discussions
+  * Added setting to ignore actions by specified moderators
+* v1.2
+  * Subreddit moderator menu action to generate summary report
+  * Improved displayed messages
+* v1.1
+  * Improved data initialization and processing
+  * Ignore deleted accounts
+* v1.0
+  * Initial Release
+
 ## Links
 
 * [Source Code](https://github.com/shiruken/user-scorer/)
-* [Changelog](https://github.com/shiruken/user-scorer/releases)
